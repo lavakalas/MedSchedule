@@ -40,3 +40,5 @@ if __name__ == '__main__':
 
     con.commit()
     con.close()
+
+# Don't mind me. I'm just an easter egg.
