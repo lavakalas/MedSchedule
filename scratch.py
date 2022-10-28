@@ -1,6 +1,6 @@
 import sqlite3
 
-con = sqlite3.connect("Master.db")
+con = sqlite3.connect("Master.sqlite")
 cur = con.cursor()
 sql = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "number" int)"""
 cur.execute(sql)

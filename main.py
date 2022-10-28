@@ -77,7 +77,8 @@ class AdapterDB:
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    wid = DictChange('Master.db')
+    wid = DictChange('Master.sqlite')
     wid.show()
     sys.exit(app.exec_())
 # Don't mind me. I'm just an easter egg.
+# xd
