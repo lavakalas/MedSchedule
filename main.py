@@ -1,6 +1,5 @@
 import sqlite3
 import sys
-from pprint import pprint
 
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtSql import QSqlDatabase, QSqlTableModel
