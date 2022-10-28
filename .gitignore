@@ -4,3 +4,4 @@ workshop.py
 ui*
 *.sqlite
 ui.py
+.idea
