@@ -81,3 +81,4 @@ if __name__ == '__main__':
     wid.show()
     sys.exit(app.exec_())
 # Don't mind me. I'm just an easter egg.
+# xd
