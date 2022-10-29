@@ -1,7 +1,6 @@
 workshop.py
 *.db
 *.ui
-ui*
 *.sqlite
 ui.py
 .idea
