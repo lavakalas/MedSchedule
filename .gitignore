@@ -4,3 +4,4 @@ workshop.py
 *.sqlite
 ui.py
 .idea
+venv
