@@ -1,12 +1,13 @@
 import sqlite3
-import sys
+import excel
+from pprint import pprint
 
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtSql import QSqlDatabase, QSqlTableModel
 from PyQt5.QtWidgets import QWidget, QApplication
 
 
-class DictChange(QWidget,):
+class DictChange(QWidget):
     def __init__(self, db):
         super(DictChange, self).__init__()
         self.db = db
@@ -65,20 +66,22 @@ class AdapterDB:
         self.con = sqlite3.connect(self.db)
         self.cur = self.con.cursor()
 
-    def get_all_from(self, table):
+    def select(self, content, table, *args):
         sqlReq = f"""SELECT * FROM {table}"""
+        if len(args) > 0:
+            conds = " and ".join(args)
+            sqlReq = sqlReq + f" WHERE {conds}"
+        print(sqlReq)
         return self.cur.execute(sqlReq).fetchall()
 
-    def get_selective(self, table, condition):
-        sqlReq = f"""SELECT * FROM {table} WHERE {condition}"""
-        return self.cur.execute(sqlReq).fetchall()
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-
-    wid = DictChange('Master.sqlite')
-    wid.show()
-    sys.exit(app.exec_())
+    ADB = AdapterDB('Master.sqlite')
+    pprint(ADB.select('*', 'rooms', 'id <= 10 or id >= 40'))
+    # app = QApplication(sys.argv)
+    #
+    # wid = DictChange('Master.sqlite')
+    # wid.show()
+    # sys.exit(app.exec_())
 # Don't mind me. I'm just an easter egg.
-# xd
