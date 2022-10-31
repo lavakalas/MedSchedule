@@ -1,6 +1,6 @@
 workshop.py
 *.db
-*.ui
 *.sqlite
 ui.py
 .idea
+test.py
