@@ -13,6 +13,7 @@ class DictChange(QWidget):
         self.db = db
         self.setupUI(self)
         self.tb_AddRoom.clicked.connect(self.addRow)
+        self.tb_DelRoom.clicked.connect(self.delRow)
 
     def setupUI(self, Form):
         Form.setObjectName("Form")
@@ -113,6 +114,17 @@ class DictChange(QWidget):
         # record.setValue('number')
         self.model.insertRecord(-1, record)
         self.model.submitAll()
+        self.tv_Rooms.selectRow(self.tv_Rooms.model().rowCount() - 1)
+
+    def delRow(self):                                                                               # TODO: for each
+        rows = list(set([el.row() for el in self.tv_Rooms.selectionModel().selectedIndexes()]))
+        for i in rows:
+            self.model.deleteRowFromTable(i)
+        self.model.submitAll()
+        self.model.clear()
+        self.model.setTable('rooms')
+        self.model.select()
+        self.tv_Rooms.selectRow(rows[0] - 1)
 
 
 class AdapterDB:
