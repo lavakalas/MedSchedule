@@ -11,10 +11,10 @@ class DictChange(QWidget):
     def __init__(self, db):
         super(DictChange, self).__init__()
         self.db = db
-        self.setupUi(self)
+        self.setupUI(self)
         self.tb_AddRoom.clicked.connect(self.addRow)
 
-    def setupUi(self, Form):
+    def setupUI(self, Form):
         Form.setObjectName("Form")
         Form.resize(773, 611)
         self.QTdb = QSqlDatabase.addDatabase('QSQLITE')
@@ -42,10 +42,12 @@ class DictChange(QWidget):
         self.tv_Groups = QtWidgets.QTableView(self.Groups)
         self.tv_Groups.setGeometry(QtCore.QRect(10, 10, 751, 531))
         self.tv_Groups.setObjectName("tv_Groups")
-
-        self.QTdb.exec('INSERT INTO rooms(number) VALUES (210), (245)')
-        self.QTdb.commit()
-
+        self.tb_DelGroup = QtWidgets.QToolButton(self.Groups)
+        self.tb_DelGroup.setGeometry(QtCore.QRect(50, 550, 31, 31))
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap(".\\ui\\DelIcon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.tb_DelGroup.setIcon(icon1)
+        self.tb_DelGroup.setObjectName("tb_DelGroup")
         self.tabWidget.addTab(self.Groups, "")
         self.Subjects = QtWidgets.QWidget()
         self.Subjects.setObjectName("Subjects")
@@ -59,6 +61,10 @@ class DictChange(QWidget):
         self.tb_AddSubject.setGeometry(QtCore.QRect(10, 550, 31, 31))
         self.tb_AddSubject.setIcon(icon)
         self.tb_AddSubject.setObjectName("tb_AddSubject")
+        self.tb_DelSubject = QtWidgets.QToolButton(self.Subjects)
+        self.tb_DelSubject.setGeometry(QtCore.QRect(50, 550, 31, 31))
+        self.tb_DelSubject.setIcon(icon1)
+        self.tb_DelSubject.setObjectName("tb_DelSubject")
         self.tabWidget.addTab(self.Subjects, "")
         self.Rooms = QtWidgets.QWidget()
         self.Rooms.setObjectName("Rooms")
@@ -75,6 +81,10 @@ class DictChange(QWidget):
         self.tb_AddRoom.setGeometry(QtCore.QRect(10, 550, 31, 31))
         self.tb_AddRoom.setIcon(icon)
         self.tb_AddRoom.setObjectName("tb_AddRoom")
+        self.tb_DelRoom = QtWidgets.QToolButton(self.Rooms)
+        self.tb_DelRoom.setGeometry(QtCore.QRect(50, 550, 31, 31))
+        self.tb_DelRoom.setIcon(icon1)
+        self.tb_DelRoom.setObjectName("tb_DelRoom")
         self.tabWidget.addTab(self.Rooms, "")
 
         self.retranslateUi(Form)
@@ -86,12 +96,15 @@ class DictChange(QWidget):
         Form.setWindowTitle(_translate("Form", "Form"))
         self.pb_ImportGroups.setText(_translate("Form", "Import from Excel"))
         self.tb_AddGroup.setText(_translate("Form", "..."))
+        self.tb_DelGroup.setText(_translate("Form", "..."))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Groups), _translate("Form", "Учебные группы"))
         self.pb_ImportSubjects.setText(_translate("Form", "Import from Excel"))
         self.tb_AddSubject.setText(_translate("Form", "..."))
+        self.tb_DelSubject.setText(_translate("Form", "..."))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Subjects), _translate("Form", "Дисциплины"))
         self.pb_ImportRooms.setText(_translate("Form", "Import from Excel"))
         self.tb_AddRoom.setText(_translate("Form", "..."))
+        self.tb_DelRoom.setText(_translate("Form", "..."))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Rooms), _translate("Form", "Аудитории"))
 
     def addRow(self):

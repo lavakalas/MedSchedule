@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="Groups">
     <attribute name="title">
@@ -67,6 +67,23 @@
        <width>751</width>
        <height>531</height>
       </rect>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="tb_DelGroup">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>550</y>
+       <width>31</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>DelIcon.png</normaloff>DelIcon.png</iconset>
      </property>
     </widget>
    </widget>
@@ -114,6 +131,23 @@
        <normaloff>AddIcon.png</normaloff>AddIcon.png</iconset>
      </property>
     </widget>
+    <widget class="QToolButton" name="tb_DelSubject">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>550</y>
+       <width>31</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>DelIcon.png</normaloff>DelIcon.png</iconset>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="Rooms">
     <attribute name="title">
@@ -157,6 +191,23 @@
      <property name="icon">
       <iconset>
        <normaloff>AddIcon.png</normaloff>AddIcon.png</iconset>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="tb_DelRoom">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>550</y>
+       <width>31</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>DelIcon.png</normaloff>DelIcon.png</iconset>
      </property>
     </widget>
    </widget>
