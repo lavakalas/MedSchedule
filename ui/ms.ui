@@ -23,26 +23,51 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="Groups">
     <attribute name="title">
      <string>Учебные группы</string>
     </attribute>
-    <widget class="QWidget" name="horizontalLayoutWidget">
+    <widget class="QPushButton" name="pb_ImportGroups">
      <property name="geometry">
       <rect>
-       <x>9</x>
-       <y>9</y>
-       <width>761</width>
-       <height>561</height>
+       <x>650</x>
+       <y>550</y>
+       <width>111</width>
+       <height>21</height>
       </rect>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QTableView" name="tv_Groups"/>
-      </item>
-     </layout>
+     <property name="text">
+      <string>Import from Excel</string>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="tb_AddGroup">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>550</y>
+       <width>31</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>AddIcon.png</normaloff>AddIcon.png</iconset>
+     </property>
+    </widget>
+    <widget class="QTableView" name="tv_Groups">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>751</width>
+       <height>531</height>
+      </rect>
+     </property>
     </widget>
    </widget>
    <widget class="QWidget" name="Subjects">
@@ -52,11 +77,41 @@
     <widget class="QTableView" name="tv_Subjects">
      <property name="geometry">
       <rect>
-       <x>8</x>
-       <y>8</y>
-       <width>761</width>
-       <height>561</height>
+       <x>10</x>
+       <y>10</y>
+       <width>751</width>
+       <height>531</height>
       </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pb_ImportSubjects">
+     <property name="geometry">
+      <rect>
+       <x>650</x>
+       <y>550</y>
+       <width>111</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Import from Excel</string>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="tb_AddSubject">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>550</y>
+       <width>31</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>AddIcon.png</normaloff>AddIcon.png</iconset>
      </property>
     </widget>
    </widget>
@@ -64,14 +119,44 @@
     <attribute name="title">
      <string>Аудитории</string>
     </attribute>
-    <widget class="QTableView" name="tv_Groups_3">
+    <widget class="QTableView" name="tv_Rooms">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>759</width>
-       <height>559</height>
+       <width>751</width>
+       <height>531</height>
       </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pb_ImportRooms">
+     <property name="geometry">
+      <rect>
+       <x>650</x>
+       <y>550</y>
+       <width>111</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Import from Excel</string>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="tb_AddRoom">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>550</y>
+       <width>31</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>AddIcon.png</normaloff>AddIcon.png</iconset>
      </property>
     </widget>
    </widget>

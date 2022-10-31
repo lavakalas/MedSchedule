@@ -2,7 +2,7 @@ import sqlite3
 
 con = sqlite3.connect("Master.sqlite")
 cur = con.cursor()
-sql = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "number" int)"""
+sql = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "number" INTEGER NOT NULL UNIQUE)"""
 cur.execute(sql)
 cur.execute("""DELETE FROM rooms""")  # Очищает существующую таблицу
 cur.execute("""DELETE FROM sqlite_sequence WHERE name = "rooms" """)  # обнуляет счётчик для id (автоинкременция)
