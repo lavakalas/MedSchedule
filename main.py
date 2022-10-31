@@ -110,13 +110,14 @@ class DictChange(QWidget):
 
     def addRow(self):
         record = self.model.record()
-        record.remove(record.indexOf('id'))
-        # record.setValue('number')
-        self.model.insertRecord(-1, record)
+        print(self.model.insertRecord(-1, record))
         self.model.submitAll()
+        self.model.clear()
+        self.model.setTable('rooms')
+        self.model.select()
         self.tv_Rooms.selectRow(self.tv_Rooms.model().rowCount() - 1)
 
-    def delRow(self):                                                                               # TODO: for each
+    def delRow(self):  # TODO: for each
         rows = list(set([el.row() for el in self.tv_Rooms.selectionModel().selectedIndexes()]))
         for i in rows:
             self.model.deleteRowFromTable(i)
