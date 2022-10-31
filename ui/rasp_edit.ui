@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>554</width>
-    <height>301</height>
+    <width>450</width>
+    <height>180</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -117,66 +117,11 @@
    <property name="geometry">
     <rect>
      <x>250</x>
-     <y>160</y>
+     <y>150</y>
      <width>81</width>
      <height>22</height>
     </rect>
    </property>
-  </widget>
-  <widget class="QComboBox" name="comboBox_5">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>160</x>
-     <y>260</y>
-     <width>91</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="insertPolicy">
-    <enum>QComboBox::InsertAtBottom</enum>
-   </property>
-   <property name="duplicatesEnabled">
-    <bool>false</bool>
-   </property>
-   <property name="frame">
-    <bool>true</bool>
-   </property>
-   <property name="modelColumn">
-    <number>0</number>
-   </property>
-   <item>
-    <property name="text">
-     <string>Понедельник</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Вторник</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Среда</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Четверг</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Пятница</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Суббота</string>
-    </property>
-   </item>
   </widget>
   <widget class="QLabel" name="label_7">
    <property name="enabled">
@@ -185,7 +130,7 @@
    <property name="geometry">
     <rect>
      <x>340</x>
-     <y>160</y>
+     <y>150</y>
      <width>16</width>
      <height>20</height>
     </rect>
@@ -201,108 +146,11 @@
    <property name="geometry">
     <rect>
      <x>360</x>
-     <y>160</y>
+     <y>150</y>
      <width>81</width>
      <height>22</height>
     </rect>
    </property>
-  </widget>
-  <widget class="QGroupBox" name="groupBox">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>140</y>
-     <width>121</width>
-     <height>141</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>День недели:</string>
-   </property>
-   <property name="flat">
-    <bool>false</bool>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-   <widget class="QCheckBox" name="checkBox">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>67</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CheckBox</string>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="checkBox_2">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>40</y>
-      <width>67</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CheckBox</string>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="checkBox_3">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>60</y>
-      <width>67</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CheckBox</string>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="checkBox_4">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>80</y>
-      <width>67</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CheckBox</string>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="checkBox_5">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>100</y>
-      <width>67</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CheckBox</string>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="checkBox_6">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>120</y>
-      <width>67</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CheckBox</string>
-    </property>
-   </widget>
   </widget>
   <widget class="QLabel" name="label_8">
    <property name="enabled">
@@ -311,7 +159,7 @@
    <property name="geometry">
     <rect>
      <x>210</x>
-     <y>160</y>
+     <y>150</y>
      <width>47</width>
      <height>21</height>
     </rect>
@@ -327,9 +175,9 @@
    <property name="geometry">
     <rect>
      <x>210</x>
-     <y>110</y>
+     <y>112</y>
      <width>81</width>
-     <height>21</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
@@ -350,6 +198,9 @@
    </property>
   </widget>
   <widget class="QCheckBox" name="checkBox_7">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>290</x>
@@ -366,6 +217,9 @@
    </property>
   </widget>
   <widget class="QLabel" name="label_11">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>290</x>
@@ -376,6 +230,198 @@
    </property>
    <property name="text">
     <string>Пн</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_8">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>110</y>
+     <width>16</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_9">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>330</x>
+     <y>110</y>
+     <width>16</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_10">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>110</y>
+     <width>16</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_11">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>110</y>
+     <width>16</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_12">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>110</y>
+     <width>16</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_13">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>410</x>
+     <y>110</y>
+     <width>16</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_12">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>130</y>
+     <width>47</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Вт</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_13">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>330</x>
+     <y>130</y>
+     <width>47</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Ср</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_14">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>130</y>
+     <width>47</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Чт</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_15">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>130</y>
+     <width>47</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Пт</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_16">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>130</y>
+     <width>47</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Сб</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_17">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>410</x>
+     <y>130</y>
+     <width>47</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Вс</string>
    </property>
   </widget>
   <widget class="QWidget" name="">
