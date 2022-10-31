@@ -21,8 +21,9 @@ class DictChange(QWidget):
         self.QTdb.setDatabaseName(self.db)
         self.QTdb.open()
 
+        self.tablename = 'rooms'
         self.model = QSqlTableModel(self, self.QTdb)
-        self.model.setTable('rooms')
+        self.model.setTable(self.tablename)
         self.model.select()
 
         self.tabWidget = QtWidgets.QTabWidget(Form)
@@ -109,10 +110,12 @@ class DictChange(QWidget):
 
     def addRow(self):
         record = self.model.record()
+        record.setNull('name')
+        record.setNull('address')
         print(self.model.insertRecord(-1, record))
         self.model.submitAll()
         self.model.clear()
-        self.model.setTable('rooms')
+        self.model.setTable(self.tablename)
         self.model.select()
         self.tv_Rooms.selectRow(self.tv_Rooms.model().rowCount() - 1)
 
@@ -120,14 +123,14 @@ class DictChange(QWidget):
         rows = list(set([el.row() for el in self.tv_Rooms.selectionModel().selectedIndexes()]))
         if rows:
             ask = QMessageBox
-            status = ask.question(self,'', 'Вы уверены?', ask.Yes | ask.No)
+            status = ask.question(self, '', 'Вы уверены?', ask.Yes | ask.No)
 
             if status == ask.Yes:
                 for i in rows:
                     self.model.deleteRowFromTable(i)
                 self.model.submitAll()
                 self.model.clear()
-                self.model.setTable('rooms')
+                self.model.setTable(self.tablename)
                 self.model.select()
                 self.tv_Rooms.selectRow(rows[0] - 1)
 
@@ -150,7 +153,7 @@ class AdapterDB:
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    wid = DictChange('Master.sqlite')
+    wid = DictChange('test.sqlite')
     wid.show()
     sys.exit(app.exec_())
 # Don't mind me. I'm just an easter egg.

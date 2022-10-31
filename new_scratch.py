@@ -3,13 +3,11 @@ import sqlite3
 con = sqlite3.connect("test.sqlite")
 cur = con.cursor()
 
-auditorium = """CREATE TABLE IF NOT EXISTS "auditorium" ("name"	TEXT NOT NULL UNIQUE, 
-"address" TEXT NOT NULL,
-PRIMARY KEY("name"))"""
-groups = """CREATE TABLE IF NOT EXISTS "groups"("name" TEXT NOT NULL UNIQUE, 
+auditorium = """CREATE TABLE IF NOT EXISTS rooms("name" TEXT, 
+"address" TEXT)"""
+groups = """CREATE TABLE IF NOT EXISTS "groups"("name" TEXT NOT NULL UNIQUE PRIMARY KEY, 
 "direction"	TEXT NOT NULL, 
-"course" INTEGER NOT NULL,
-PRIMARY KEY("name"))"""
+"course" INTEGER NOT NULL)"""
 schedule = """CREATE TABLE IF NOT EXISTS "schedule"("group"	TEXT NOT NULL, 
 "subject" TEXT NOT NULL, 
 "auditorium" TEXT NOT NULL, 
