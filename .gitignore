@@ -5,3 +5,5 @@ workshop.py
 ui.py
 .idea
 venv
+*.xls
+*.xlsx
