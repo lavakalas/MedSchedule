@@ -1,10 +1,9 @@
 import sqlite3
 import sys
-from pprint import pprint
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlRecord
-from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox
 
 
 class DictChange(QWidget):
@@ -119,13 +118,18 @@ class DictChange(QWidget):
 
     def delRow(self):  # TODO: for each
         rows = list(set([el.row() for el in self.tv_Rooms.selectionModel().selectedIndexes()]))
-        for i in rows:
-            self.model.deleteRowFromTable(i)
-        self.model.submitAll()
-        self.model.clear()
-        self.model.setTable('rooms')
-        self.model.select()
-        self.tv_Rooms.selectRow(rows[0] - 1)
+        if rows:
+            ask = QMessageBox
+            status = ask.question(self,'', 'Вы уверены?', ask.Yes | ask.No)
+
+            if status == ask.Yes:
+                for i in rows:
+                    self.model.deleteRowFromTable(i)
+                self.model.submitAll()
+                self.model.clear()
+                self.model.setTable('rooms')
+                self.model.select()
+                self.tv_Rooms.selectRow(rows[0] - 1)
 
 
 class AdapterDB:
