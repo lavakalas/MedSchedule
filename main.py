@@ -14,12 +14,15 @@ class DictChange(QWidget):
         self.db = db
         self.setupUI(self)
 
-        addList = [[self.rmodel, self.tv_Rooms, self.roomsName], [self.gmodel, self.tv_Groups, self.groupsName],
+        objList = [[self.rmodel, self.tv_Rooms, self.roomsName], [self.gmodel, self.tv_Groups, self.groupsName],
                    [self.smodel, self.tv_Subjects, self.subjectsName]]
-        self.tb_AddRoom.clicked.connect(lambda: self.addRow(addList[0]))
-        self.tb_AddGroup.clicked.connect(lambda: self.addRow(addList[1]))
-        self.tb_AddSubject.clicked.connect(lambda: self.addRow(addList[2]))
-        self.tb_DelRoom.clicked.connect(self.delRow)
+        self.tb_AddRoom.clicked.connect(lambda: self.addRow(objList[0]))
+        self.tb_AddGroup.clicked.connect(lambda: self.addRow(objList[1]))
+        self.tb_AddSubject.clicked.connect(lambda: self.addRow(objList[2]))
+
+        self.tb_DelRoom.clicked.connect(lambda: self.delRow(objList[0]))
+        self.tb_DelGroup.clicked.connect(lambda: self.delRow(objList[1]))
+        self.tb_DelSubject.clicked.connect(lambda: self.delRow(objList[2]))
         self.pb_ImportRooms.clicked.connect(self.load)
 
     def loadModels(self):
@@ -139,8 +142,6 @@ class DictChange(QWidget):
     def addRow(self, toAdd):
         print(toAdd)
         record = toAdd[0].record()
-        # record.setNull('name')
-        # record.setNull('address')
         print(toAdd[0].insertRecord(-1, record))
         toAdd[0].submitAll()
         toAdd[0].clear()
@@ -149,21 +150,21 @@ class DictChange(QWidget):
         toAdd[1].selectRow(toAdd[1].model().rowCount() - 1)
         toAdd[1].hideColumn(0)
 
-    def delRow(self):  # TODO: for each
-        rows = list(set([el.row() for el in self.tv_Rooms.selectionModel().selectedIndexes()]))
+    def delRow(self, toDel):  # TODO: for each
+        rows = list(set([el.row() for el in toDel[1].selectionModel().selectedIndexes()]))
         if rows:
             ask = QMessageBox
             status = ask.question(self, '', 'Вы уверены?', ask.Yes | ask.No)
 
             if status == ask.Yes:
                 for i in rows:
-                    self.rmodel.deleteRowFromTable(i)
-                self.rmodel.submitAll()
-                self.rmodel.clear()
-                self.rmodel.setTable(self.roomsName)
-                self.rmodel.select()
-                self.tv_Rooms.selectRow(rows[0] - 1)
-        self.tv_Rooms.hideColumn(0)
+                    toDel[0].deleteRowFromTable(i)
+                toDel[0].submitAll()
+                toDel[0].clear()
+                toDel[0].setTable(toDel[2])
+                toDel[0].select()
+                toDel[1].selectRow(rows[0] - 1)
+        toDel[1].hideColumn(0)
 
     def load(self, a):  # TODO: for each
         file, status = QFileDialog.getOpenFileName()
