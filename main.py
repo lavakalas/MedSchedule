@@ -1,10 +1,11 @@
 import sqlite3
 import string
 import sys
-from openpyxl import load_workbook
+
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlRecord
-from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox
+from PyQt5.QtSql import QSqlDatabase, QSqlTableModel
+from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox, QFileDialog
+from openpyxl import load_workbook
 
 
 class DictChange(QWidget):
@@ -14,6 +15,8 @@ class DictChange(QWidget):
         self.setupUI(self)
         self.tb_AddRoom.clicked.connect(self.addRow)
         self.tb_DelRoom.clicked.connect(self.delRow)
+        a = 'ha'
+        self.pb_ImportRooms.clicked.connect(lambda: self.load(a))
 
     def setupUI(self, Form):
         Form.setObjectName("Form")
@@ -138,22 +141,25 @@ class DictChange(QWidget):
                 self.tv_Rooms.selectRow(rows[0] - 1)
         self.tv_Rooms.hideColumn(0)
 
-    def load(self):     # TODO: for each
-        record = self.model.record()
-        columns = ['title', 'year', 'genre', 'duration']
-        wb = load_workbook("file.xlsx")
-        ws1 = wb['Лист1']
-        rc = ws1.max_row
-        cc = ws1.max_column
-        print(rc, cc)
-        column_names = list(string.ascii_uppercase)
-        record.remove(record.indexOf("id"))
-        for i in range(1, rc + 1):
-            for j in range(cc):
-                target = column_names[j] + str(i)
-                record.setValue(columns[j], ws1[target].value)
-            self.model.insertRecord(-1, record)
-            self.model.submitAll()
+    def load(self, a):     # TODO: for each
+        file, status = QFileDialog.getOpenFileName()
+        if status:
+            print(file, status)
+            record = self.model.record()
+            columns = ['name', 'address']
+            wb = load_workbook(file)
+            ws1 = wb['Лист1']
+            rc = ws1.max_row
+            cc = ws1.max_column
+            print(rc, cc)
+            column_names = list(string.ascii_uppercase)
+            record.remove(record.indexOf("id"))
+            for i in range(1, rc + 1):
+                for j in range(2):
+                    target = column_names[j] + str(i)
+                    record.setValue(columns[j], ws1[target].value)
+                self.model.insertRecord(-1, record)
+                self.model.submitAll()
 
 
 class AdapterDB:
