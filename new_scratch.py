@@ -15,7 +15,7 @@ schedule = """CREATE TABLE IF NOT EXISTS "schedule"("id" INTEGER  PRIMARY KEY AU
 "date_end" TEXT, 
 "time_start" TEXT , 
 "time_end" TEXT )"""
-subject = """CREATE TABLE IF NOT EXISTS "subject"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT , 
+subject = """CREATE TABLE IF NOT EXISTS "subjects"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT , 
 "teacher" TEXT )"""
 
 cur.execute(auditorium)

@@ -23,7 +23,10 @@ class DictChange(QWidget):
         self.tb_DelRoom.clicked.connect(lambda: self.delRow(objList[0]))
         self.tb_DelGroup.clicked.connect(lambda: self.delRow(objList[1]))
         self.tb_DelSubject.clicked.connect(lambda: self.delRow(objList[2]))
-        self.pb_ImportRooms.clicked.connect(self.load)
+
+        self.pb_ImportRooms.clicked.connect(lambda: self.load(objList[0]))
+        self.pb_ImportGroups.clicked.connect(lambda: self.load(objList[1]))
+        self.pb_ImportSubjects.clicked.connect(lambda: self.load(objList[2]))
 
     def loadModels(self):
         self.roomsName = 'rooms'  # loading rooms
@@ -36,7 +39,7 @@ class DictChange(QWidget):
         self.gmodel.setTable(self.groupsName)
         self.gmodel.select()
 
-        self.subjectsName = 'subject'  # loading subjects
+        self.subjectsName = 'subjects'  # loading subjects
         self.smodel = QSqlTableModel(self, self.QTdb)
         self.smodel.setTable(self.subjectsName)
         self.smodel.select()
@@ -166,12 +169,14 @@ class DictChange(QWidget):
                 toDel[1].selectRow(rows[0] - 1)
         toDel[1].hideColumn(0)
 
-    def load(self, a):  # TODO: for each
+    def load(self, toLoadInto):
         file, status = QFileDialog.getOpenFileName()
         if status:
             print(file, status)
-            record = self.rmodel.record()
-            columns = ['name', 'address']
+            record = toLoadInto[0].record()
+            columns = {'rooms': ['name', 'address'],
+                       'groups': ['name', 'direction', 'course'],
+                       'subjects': ['name', 'teacher']}
             wb = load_workbook(file)
             ws1 = wb['Лист1']
             rc = ws1.max_row
@@ -180,11 +185,11 @@ class DictChange(QWidget):
             column_names = list(string.ascii_uppercase)
             record.remove(record.indexOf("id"))
             for i in range(1, rc + 1):
-                for j in range(2):
+                for j in range(len(columns[toLoadInto[2]])):
                     target = column_names[j] + str(i)
-                    record.setValue(columns[j], ws1[target].value)
-                self.rmodel.insertRecord(-1, record)
-                self.rmodel.submitAll()
+                    record.setValue(columns[toLoadInto[2]][j], ws1[target].value)
+                toLoadInto[0].insertRecord(-1, record)
+                toLoadInto[0].submitAll()
 
 
 class AdapterDB:
