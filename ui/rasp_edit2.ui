@@ -433,6 +433,9 @@
      <height>19</height>
     </rect>
    </property>
+   <property name="editable">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QComboBox" name="cB_Subject">
    <property name="geometry">
@@ -442,6 +445,9 @@
      <width>60</width>
      <height>19</height>
     </rect>
+   </property>
+   <property name="editable">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QComboBox" name="cB_Group">

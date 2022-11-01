@@ -15,6 +15,12 @@ class ScheduleEditor(QMainWindow):
         self.sw = DictChange('test.sqlite')
         self.action.triggered.connect(self.show_editor)
 
+        for el in self.get_info('groups'):
+            self.cB_Group.addItem(el[0])
+        for el in self.get_info('rooms'):
+            self.cB_Venue.addItem(el[0])
+        for el in self.get_info('subjects'):
+            self.cB_Subject.addItem(el[0])
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -195,8 +201,8 @@ class ScheduleEditor(QMainWindow):
     def show_editor(self):
         self.sw.show()
 
-    def get_info(self):
-        self.sw.get_info('groups')
+    def get_info(self, table):
+        return self.sw.get_info(table)
 
 
 
@@ -403,7 +409,7 @@ class DictChange(QWidget):
         query.exec(f"SELECT COUNT(*) FROM {table}")
         query.first()
         count = query.value(0)
-        print(count)
+        #print(count)
         query.exec(f'SELECT * FROM {table}')
         query.first()
         out.append([query.value(i) for i in range(1, lengths[table] + 1)])
