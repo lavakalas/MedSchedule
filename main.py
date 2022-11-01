@@ -1,4 +1,3 @@
-import sqlite3
 import string
 import sys
 
@@ -9,26 +8,34 @@ from openpyxl import load_workbook
 
 
 class DictChange(QWidget):
+    smodel: QSqlTableModel
+    subjectsName: str
+    gmodel: QSqlTableModel
+    groupsName: str
+    rmodel: QSqlTableModel
+    roomsName: str
+
+    # noinspection PyUnresolvedReferences
     def __init__(self, db):
         super(DictChange, self).__init__()
         self.db = db
         self.setupUI(self)
 
-        objList = [[self.rmodel, self.tv_Rooms, self.roomsName], [self.gmodel, self.tv_Groups, self.groupsName],
-                   [self.smodel, self.tv_Subjects, self.subjectsName]]
-        self.tb_AddRoom.clicked.connect(lambda: self.addRow(objList[0]))
-        self.tb_AddGroup.clicked.connect(lambda: self.addRow(objList[1]))
-        self.tb_AddSubject.clicked.connect(lambda: self.addRow(objList[2]))
+        obj_list = [[self.rmodel, self.tv_Rooms, self.roomsName], [self.gmodel, self.tv_Groups, self.groupsName],
+                    [self.smodel, self.tv_Subjects, self.subjectsName]]
+        self.tb_AddRoom.clicked.connect(lambda: self.addRow(obj_list[0]))
+        self.tb_AddGroup.clicked.connect(lambda: self.addRow(obj_list[1]))
+        self.tb_AddSubject.clicked.connect(lambda: self.addRow(obj_list[2]))
 
-        self.tb_DelRoom.clicked.connect(lambda: self.delRow(objList[0]))
-        self.tb_DelGroup.clicked.connect(lambda: self.delRow(objList[1]))
-        self.tb_DelSubject.clicked.connect(lambda: self.delRow(objList[2]))
+        self.tb_DelRoom.clicked.connect(lambda: self.delRow(obj_list[0]))
+        self.tb_DelGroup.clicked.connect(lambda: self.delRow(obj_list[1]))
+        self.tb_DelSubject.clicked.connect(lambda: self.delRow(obj_list[2]))
 
-        self.pb_ImportRooms.clicked.connect(lambda: self.load(objList[0]))
-        self.pb_ImportGroups.clicked.connect(lambda: self.load(objList[1]))
-        self.pb_ImportSubjects.clicked.connect(lambda: self.load(objList[2]))
+        self.pb_ImportRooms.clicked.connect(lambda: self.load(obj_list[0]))
+        self.pb_ImportGroups.clicked.connect(lambda: self.load(obj_list[1]))
+        self.pb_ImportSubjects.clicked.connect(lambda: self.load(obj_list[2]))
 
-    def loadModels(self):
+    def load_models(self):
         self.roomsName = 'rooms'  # loading rooms
         self.rmodel = QSqlTableModel(self, self.QTdb)
         self.rmodel.setTable(self.roomsName)
@@ -50,7 +57,7 @@ class DictChange(QWidget):
         self.QTdb = QSqlDatabase.addDatabase('QSQLITE')
         self.QTdb.setDatabaseName(self.db)
         self.QTdb.open()
-        self.loadModels()
+        self.load_models()
         self.tabWidget = QtWidgets.QTabWidget(Form)
         self.tabWidget.setGeometry(QtCore.QRect(-7, 1, 781, 611))
         self.tabWidget.setObjectName("tabWidget")
@@ -142,7 +149,8 @@ class DictChange(QWidget):
         self.tb_DelRoom.setText(_translate("Form", "..."))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Rooms), _translate("Form", "Аудитории"))
 
-    def addRow(self, toAdd):
+    @staticmethod
+    def addRow(toAdd):
         print(toAdd)
         record = toAdd[0].record()
         print(toAdd[0].insertRecord(-1, record))
@@ -169,7 +177,8 @@ class DictChange(QWidget):
                 toDel[1].selectRow(rows[0] - 1)
         toDel[1].hideColumn(0)
 
-    def load(self, toLoadInto):
+    @staticmethod
+    def load(toLoadInto):
         file, status = QFileDialog.getOpenFileName()
         if status:
             print(file, status)
@@ -190,21 +199,6 @@ class DictChange(QWidget):
                     record.setValue(columns[toLoadInto[2]][j], ws1[target].value)
                 toLoadInto[0].insertRecord(-1, record)
                 toLoadInto[0].submitAll()
-
-
-class AdapterDB:
-    def __init__(self, db):
-        self.db = db
-        self.con = sqlite3.connect(self.db)
-        self.cur = self.con.cursor()
-
-    def select(self, content, table, *args):
-        sqlReq = f"""SELECT * FROM {table}"""
-        if len(args) > 0:
-            conds = " and ".join(args)
-            sqlReq = sqlReq + f" WHERE {conds}"
-        print(sqlReq)
-        return self.cur.execute(sqlReq).fetchall()
 
 
 if __name__ == '__main__':
