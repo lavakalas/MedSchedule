@@ -7,9 +7,9 @@ from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox, QFileDialog, QMa
 from openpyxl import load_workbook
 
 
-class Ui_Form(QMainWindow):
+class ScheduleEditor(QMainWindow):
     def __init__(self):
-        super(Ui_Form, self).__init__()
+        super(ScheduleEditor, self).__init__()
         self.setupUi(self)
         self.action.triggered.connect(self.show_editor)
 
@@ -392,7 +392,7 @@ class DictChange(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    Sched = Ui_Form()
+    Sched = ScheduleEditor()
     Sched.show()
     sys.exit(app.exec_())
 # Don't mind me. I'm just an easter egg.
