@@ -361,7 +361,6 @@ class DictChange(QWidget):
         toAdd[1].hideColumn(0)
 
     def delRow(self, toDel):
-        self.get_info('groups')
         rows = list(set([el.row() for el in toDel[1].selectionModel().selectedIndexes()]))
         if rows:
             ask = QMessageBox
