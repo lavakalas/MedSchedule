@@ -13,10 +13,30 @@ class DictChange(QWidget):
         super(DictChange, self).__init__()
         self.db = db
         self.setupUI(self)
-        self.tb_AddRoom.clicked.connect(self.addRow)
+
+        addList = [[self.rmodel, self.tv_Rooms, self.roomsName], [self.gmodel, self.tv_Groups, self.groupsName],
+                   [self.smodel, self.tv_Subjects, self.subjectsName]]
+        self.tb_AddRoom.clicked.connect(lambda: self.addRow(addList[0]))
+        self.tb_AddGroup.clicked.connect(lambda: self.addRow(addList[1]))
+        self.tb_AddSubject.clicked.connect(lambda: self.addRow(addList[2]))
         self.tb_DelRoom.clicked.connect(self.delRow)
-        a = 'ha'
-        self.pb_ImportRooms.clicked.connect(lambda: self.load(a))
+        self.pb_ImportRooms.clicked.connect(self.load)
+
+    def loadModels(self):
+        self.roomsName = 'rooms'  # loading rooms
+        self.rmodel = QSqlTableModel(self, self.QTdb)
+        self.rmodel.setTable(self.roomsName)
+        self.rmodel.select()
+
+        self.groupsName = 'groups'  # loading groups
+        self.gmodel = QSqlTableModel(self, self.QTdb)
+        self.gmodel.setTable(self.groupsName)
+        self.gmodel.select()
+
+        self.subjectsName = 'subject'  # loading subjects
+        self.smodel = QSqlTableModel(self, self.QTdb)
+        self.smodel.setTable(self.subjectsName)
+        self.smodel.select()
 
     def setupUI(self, Form):
         Form.setObjectName("Form")
@@ -24,12 +44,7 @@ class DictChange(QWidget):
         self.QTdb = QSqlDatabase.addDatabase('QSQLITE')
         self.QTdb.setDatabaseName(self.db)
         self.QTdb.open()
-
-        self.tablename = 'rooms'
-        self.model = QSqlTableModel(self, self.QTdb)
-        self.model.setTable(self.tablename)
-        self.model.select()
-
+        self.loadModels()
         self.tabWidget = QtWidgets.QTabWidget(Form)
         self.tabWidget.setGeometry(QtCore.QRect(-7, 1, 781, 611))
         self.tabWidget.setObjectName("tabWidget")
@@ -44,9 +59,13 @@ class DictChange(QWidget):
         icon.addPixmap(QtGui.QPixmap("./ui/AddIcon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.tb_AddGroup.setIcon(icon)
         self.tb_AddGroup.setObjectName("tb_AddGroup")
+
         self.tv_Groups = QtWidgets.QTableView(self.Groups)
         self.tv_Groups.setGeometry(QtCore.QRect(10, 10, 751, 531))
         self.tv_Groups.setObjectName("tv_Groups")
+        self.tv_Groups.setModel(self.gmodel)
+        self.tv_Groups.hideColumn(0)
+
         self.tb_DelGroup = QtWidgets.QToolButton(self.Groups)
         self.tb_DelGroup.setGeometry(QtCore.QRect(50, 550, 31, 31))
         icon1 = QtGui.QIcon()
@@ -56,9 +75,13 @@ class DictChange(QWidget):
         self.tabWidget.addTab(self.Groups, "")
         self.Subjects = QtWidgets.QWidget()
         self.Subjects.setObjectName("Subjects")
+
         self.tv_Subjects = QtWidgets.QTableView(self.Subjects)
         self.tv_Subjects.setGeometry(QtCore.QRect(10, 10, 751, 531))
         self.tv_Subjects.setObjectName("tv_Subjects")
+        self.tv_Subjects.setModel(self.smodel)
+        self.tv_Subjects.hideColumn(0)
+
         self.pb_ImportSubjects = QtWidgets.QPushButton(self.Subjects)
         self.pb_ImportSubjects.setGeometry(QtCore.QRect(650, 550, 111, 21))
         self.pb_ImportSubjects.setObjectName("pb_ImportSubjects")
@@ -77,7 +100,7 @@ class DictChange(QWidget):
         self.tv_Rooms = QtWidgets.QTableView(self.Rooms)
         self.tv_Rooms.setGeometry(QtCore.QRect(10, 10, 751, 531))
         self.tv_Rooms.setObjectName("tv_Rooms")
-        self.tv_Rooms.setModel(self.model)
+        self.tv_Rooms.setModel(self.rmodel)
         self.tv_Rooms.hideColumn(0)
 
         self.pb_ImportRooms = QtWidgets.QPushButton(self.Rooms)
@@ -113,17 +136,18 @@ class DictChange(QWidget):
         self.tb_DelRoom.setText(_translate("Form", "..."))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Rooms), _translate("Form", "Аудитории"))
 
-    def addRow(self):
-        record = self.model.record()
-        record.setNull('name')
-        record.setNull('address')
-        print(self.model.insertRecord(-1, record))
-        self.model.submitAll()
-        self.model.clear()
-        self.model.setTable(self.tablename)
-        self.model.select()
-        self.tv_Rooms.selectRow(self.tv_Rooms.model().rowCount() - 1)
-        self.tv_Rooms.hideColumn(0)
+    def addRow(self, toAdd):
+        print(toAdd)
+        record = toAdd[0].record()
+        # record.setNull('name')
+        # record.setNull('address')
+        print(toAdd[0].insertRecord(-1, record))
+        toAdd[0].submitAll()
+        toAdd[0].clear()
+        toAdd[0].setTable(toAdd[2])
+        toAdd[0].select()
+        toAdd[1].selectRow(toAdd[1].model().rowCount() - 1)
+        toAdd[1].hideColumn(0)
 
     def delRow(self):  # TODO: for each
         rows = list(set([el.row() for el in self.tv_Rooms.selectionModel().selectedIndexes()]))
@@ -133,19 +157,19 @@ class DictChange(QWidget):
 
             if status == ask.Yes:
                 for i in rows:
-                    self.model.deleteRowFromTable(i)
-                self.model.submitAll()
-                self.model.clear()
-                self.model.setTable(self.tablename)
-                self.model.select()
+                    self.rmodel.deleteRowFromTable(i)
+                self.rmodel.submitAll()
+                self.rmodel.clear()
+                self.rmodel.setTable(self.roomsName)
+                self.rmodel.select()
                 self.tv_Rooms.selectRow(rows[0] - 1)
         self.tv_Rooms.hideColumn(0)
 
-    def load(self, a):     # TODO: for each
+    def load(self, a):  # TODO: for each
         file, status = QFileDialog.getOpenFileName()
         if status:
             print(file, status)
-            record = self.model.record()
+            record = self.rmodel.record()
             columns = ['name', 'address']
             wb = load_workbook(file)
             ws1 = wb['Лист1']
@@ -158,8 +182,8 @@ class DictChange(QWidget):
                 for j in range(2):
                     target = column_names[j] + str(i)
                     record.setValue(columns[j], ws1[target].value)
-                self.model.insertRecord(-1, record)
-                self.model.submitAll()
+                self.rmodel.insertRecord(-1, record)
+                self.rmodel.submitAll()
 
 
 class AdapterDB:

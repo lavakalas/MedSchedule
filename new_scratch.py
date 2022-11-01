@@ -3,20 +3,20 @@ import sqlite3
 con = sqlite3.connect("test.sqlite")
 cur = con.cursor()
 
-auditorium = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "name" TEXT, 
+auditorium = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE, "name" TEXT, 
 "address" TEXT)"""
-groups = """CREATE TABLE IF NOT EXISTS "groups"("name" TEXT NOT NULL UNIQUE PRIMARY KEY, 
-"direction"	TEXT NOT NULL, 
-"course" INTEGER NOT NULL)"""
-schedule = """CREATE TABLE IF NOT EXISTS "schedule"("group"	TEXT NOT NULL, 
-"subject" TEXT NOT NULL, 
-"auditorium" TEXT NOT NULL, 
-"date_start" TEXT NOT NULL, 
+groups = """CREATE TABLE IF NOT EXISTS "groups"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT UNIQUE, 
+"direction"	TEXT, 
+"course" INTEGER )"""
+schedule = """CREATE TABLE IF NOT EXISTS "schedule"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"group"	TEXT , 
+"subject" TEXT , 
+"auditorium" TEXT , 
+"date_start" TEXT , 
 "date_end" TEXT, 
-"time_start" TEXT NOT NULL, 
-"time_end" TEXT NOT NULL)"""
-subject = """CREATE TABLE IF NOT EXISTS "subject"("name" TEXT NOT NULL, 
-"teacher" TEXT NOT NULL)"""
+"time_start" TEXT , 
+"time_end" TEXT )"""
+subject = """CREATE TABLE IF NOT EXISTS "subject"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT , 
+"teacher" TEXT )"""
 
 cur.execute(auditorium)
 cur.execute(groups)
