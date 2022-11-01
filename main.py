@@ -210,7 +210,7 @@ class AdapterDB:
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    wid = DictChange('test.sqlite')
-    wid.show()
+    Dic = DictChange('test.sqlite')
+    Dic.show()
     sys.exit(app.exec_())
 # Don't mind me. I'm just an easter egg.
