@@ -11,7 +11,7 @@ class Ui_Form(QMainWindow):
     def __init__(self):
         super(Ui_Form, self).__init__()
         self.setupUi(self)
-        self.EditGuides.triggered.connect(self.show_editor)
+        self.action.triggered.connect(self.show_editor)
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -157,6 +157,9 @@ class Ui_Form(QMainWindow):
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
+        self.action = QtWidgets.QAction(MainWindow)
+        self.action.setObjectName("action")
+        self.EditGuides.addAction(self.action)
         self.menubar.addAction(self.EditGuides.menuAction())
 
         self.retranslateUi(MainWindow)
@@ -183,7 +186,8 @@ class Ui_Form(QMainWindow):
         self.lbl_DashBD.setText(_translate("MainWindow", "—"))
         self.lbl_Th.setText(_translate("MainWindow", "Чт"))
         self.lbl_Mo.setText(_translate("MainWindow", "Пн"))
-        self.EditGuides.setTitle(_translate("MainWindow", "Редактриовать Справочники"))
+        self.EditGuides.setTitle(_translate("MainWindow", "File"))
+        self.action.setText(_translate("MainWindow", "Редактировать справочники"))
 
     def show_editor(self):
         print("Happened")
