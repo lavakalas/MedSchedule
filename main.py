@@ -2,16 +2,19 @@ import string
 import sys
 
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtSql import QSqlDatabase, QSqlTableModel
+from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery
 from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox, QFileDialog, QMainWindow
 from openpyxl import load_workbook
 
 
 class ScheduleEditor(QMainWindow):
+    # noinspection PyUnresolvedReferences
     def __init__(self):
         super(ScheduleEditor, self).__init__()
         self.setupUi(self)
+        self.sw = DictChange('test.sqlite')
         self.action.triggered.connect(self.show_editor)
+
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -190,9 +193,11 @@ class ScheduleEditor(QMainWindow):
         self.action.setText(_translate("MainWindow", "Редактировать справочники"))
 
     def show_editor(self):
-        print("Happened")
-        self.sw = DictChange('test.sqlite')
         self.sw.show()
+
+    def get_info(self):
+        self.sw.get_info('groups')
+
 
 
 class DictChange(QWidget):
@@ -350,6 +355,7 @@ class DictChange(QWidget):
         toAdd[1].hideColumn(0)
 
     def delRow(self, toDel):
+        self.get_info('groups')
         rows = list(set([el.row() for el in toDel[1].selectionModel().selectedIndexes()]))
         if rows:
             ask = QMessageBox
@@ -387,6 +393,24 @@ class DictChange(QWidget):
                     record.setValue(columns[toLoadInto[2]][j], ws1[target].value)
                 toLoadInto[0].insertRecord(-1, record)
                 toLoadInto[0].submitAll()
+
+    def get_info(self, table):
+        lengths = {'rooms': 2,
+                   'groups': 3,
+                   'subjects': 2}
+        out = list()
+        query = QSqlQuery()
+        query.exec(f"SELECT COUNT(*) FROM {table}")
+        query.first()
+        count = query.value(0)
+        print(count)
+        query.exec(f'SELECT * FROM {table}')
+        query.first()
+        out.append([query.value(i) for i in range(1, lengths[table] + 1)])
+        for _ in range(1, count):
+            query.next()
+            out.append([query.value(i) for i in range(1, lengths[table] + 1)])
+        return out
 
 
 if __name__ == '__main__':
