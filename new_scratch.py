@@ -3,7 +3,7 @@ import sqlite3
 con = sqlite3.connect("test.sqlite")
 cur = con.cursor()
 
-auditorium = """CREATE TABLE IF NOT EXISTS rooms("name" TEXT, 
+auditorium = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "name" TEXT, 
 "address" TEXT)"""
 groups = """CREATE TABLE IF NOT EXISTS "groups"("name" TEXT NOT NULL UNIQUE PRIMARY KEY, 
 "direction"	TEXT NOT NULL, 

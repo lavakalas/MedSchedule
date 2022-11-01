@@ -1,6 +1,7 @@
 import sqlite3
+import string
 import sys
-
+from openpyxl import load_workbook
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlRecord
 from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox
@@ -74,6 +75,7 @@ class DictChange(QWidget):
         self.tv_Rooms.setGeometry(QtCore.QRect(10, 10, 751, 531))
         self.tv_Rooms.setObjectName("tv_Rooms")
         self.tv_Rooms.setModel(self.model)
+        self.tv_Rooms.hideColumn(0)
 
         self.pb_ImportRooms = QtWidgets.QPushButton(self.Rooms)
         self.pb_ImportRooms.setGeometry(QtCore.QRect(650, 550, 111, 21))
@@ -118,6 +120,7 @@ class DictChange(QWidget):
         self.model.setTable(self.tablename)
         self.model.select()
         self.tv_Rooms.selectRow(self.tv_Rooms.model().rowCount() - 1)
+        self.tv_Rooms.hideColumn(0)
 
     def delRow(self):  # TODO: for each
         rows = list(set([el.row() for el in self.tv_Rooms.selectionModel().selectedIndexes()]))
@@ -133,6 +136,24 @@ class DictChange(QWidget):
                 self.model.setTable(self.tablename)
                 self.model.select()
                 self.tv_Rooms.selectRow(rows[0] - 1)
+        self.tv_Rooms.hideColumn(0)
+
+    def load(self):     # TODO: for each
+        record = self.model.record()
+        columns = ['title', 'year', 'genre', 'duration']
+        wb = load_workbook("file.xlsx")
+        ws1 = wb['Лист1']
+        rc = ws1.max_row
+        cc = ws1.max_column
+        print(rc, cc)
+        column_names = list(string.ascii_uppercase)
+        record.remove(record.indexOf("id"))
+        for i in range(1, rc + 1):
+            for j in range(cc):
+                target = column_names[j] + str(i)
+                record.setValue(columns[j], ws1[target].value)
+            self.model.insertRecord(-1, record)
+            self.model.submitAll()
 
 
 class AdapterDB:
