@@ -5,7 +5,7 @@ cur = con.cursor()
 
 auditorium = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE, "name" TEXT, 
 "address" TEXT)"""
-groups = """CREATE TABLE IF NOT EXISTS "groups"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT UNIQUE, 
+groups = """CREATE TABLE IF NOT EXISTS "groups"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT, 
 "direction"	TEXT, 
 "course" INTEGER )"""
 schedule = """CREATE TABLE IF NOT EXISTS "schedule"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"group"	TEXT , 
