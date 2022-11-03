@@ -332,12 +332,21 @@ class DictChange(QWidget):
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def closeEvent(self, event):
-        reply = QMessageBox.question(self, 'Window Close', 'Are you sure you want to close the window?',
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-
+        reply = QMessageBox.No
+        query = QSqlQuery()
+        query.exec("SELECT RowNum from "
+                   "(SELECT ROW_NUMBER () OVER (ORDER BY id) RowNum, name, address FROM rooms)"
+                   " WHERE name IS NULL or address IS NULL")
+        query.first()
+        roomsNULL = query.value(0)
+        if roomsNULL is not None:
+            self.tv_Rooms.selectRow(roomsNULL - 1)
+        else:
+            reply = QMessageBox.question(self, 'Window Close', 'Are you sure you want to close the window?',
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             event.accept()
-            print('Window closed')
+
         else:
             event.ignore()
 
@@ -408,7 +417,8 @@ class DictChange(QWidget):
                 toLoadInto[0].insertRecord(-1, record)
                 toLoadInto[0].submitAll()
 
-    def get_info(self, table):
+    @staticmethod
+    def get_info(table):
         lengths = {'rooms': 2,
                    'groups': 3,
                    'subjects': 2}
