@@ -11,6 +11,7 @@ class ScheduleEditor(QMainWindow):
     # noinspection PyUnresolvedReferences
     def __init__(self):
         super(ScheduleEditor, self).__init__()
+        self.init_DB()
         self.setupUi(self)
         self.sw = DictChange('test.sqlite')
         self.action.triggered.connect(self.show_editor)
@@ -21,6 +22,34 @@ class ScheduleEditor(QMainWindow):
             self.cB_Venue.addItem(el[0])
         for el in self.get_info('subjects'):
             self.cB_Subject.addItem(el[0])
+    @staticmethod
+    def init_DB():
+        import sqlite3
+        con = sqlite3.connect("test.sqlite")
+        cur = con.cursor()
+
+        auditorium = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE, "name" TEXT, 
+        "address" TEXT)"""
+        groups = """CREATE TABLE IF NOT EXISTS "groups"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT, 
+        "direction"	TEXT, 
+        "course" INTEGER )"""
+        schedule = """CREATE TABLE IF NOT EXISTS "schedule"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"group"	TEXT , 
+        "subject" TEXT , 
+        "auditorium" TEXT , 
+        "date_start" TEXT , 
+        "date_end" TEXT, 
+        "time_start" TEXT , 
+        "time_end" TEXT )"""
+        subject = """CREATE TABLE IF NOT EXISTS "subjects"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT , 
+        "teacher" TEXT )"""
+
+        cur.execute(auditorium)
+        cur.execute(groups)
+        cur.execute(schedule)
+        cur.execute(subject)
+        con.commit()
+
+        con.close()
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -336,7 +365,7 @@ class DictChange(QWidget):
         query = QSqlQuery()
         query.exec("SELECT RowNum from "
                    "(SELECT ROW_NUMBER () OVER (ORDER BY id) RowNum, name, address FROM rooms)"
-                   " WHERE name IS NULL or address IS NULL")
+                   " WHERE name IS NULL or address IS NULL or name = '' or address = ''")
         query.first()
         roomsNULL = query.value(0)
         if roomsNULL is not None:
@@ -440,7 +469,7 @@ class DictChange(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    Sched = ScheduleEditor()
-    Sched.show()
+    Schedule = ScheduleEditor()
+    Schedule.show()
     sys.exit(app.exec_())
 # Don't mind me. I'm just an easter egg.
