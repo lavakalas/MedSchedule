@@ -205,7 +205,6 @@ class ScheduleEditor(QMainWindow):
         return self.sw.get_info(table)
 
 
-
 class DictChange(QWidget):
     smodel: QSqlTableModel
     subjectsName: str
@@ -332,6 +331,16 @@ class DictChange(QWidget):
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
+    def closeEvent(self, event):
+        reply = QMessageBox.question(self, 'Window Close', 'Are you sure you want to close the window?',
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            event.accept()
+            print('Window closed')
+        else:
+            event.ignore()
+
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
@@ -408,7 +417,7 @@ class DictChange(QWidget):
         query.exec(f"SELECT COUNT(*) FROM {table}")
         query.first()
         count = query.value(0)
-        #print(count)
+        # print(count)
         query.exec(f'SELECT * FROM {table}')
         query.first()
         out.append([query.value(i) for i in range(1, lengths[table] + 1)])
