@@ -11,9 +11,9 @@ class ScheduleEditor(QMainWindow):
     # noinspection PyUnresolvedReferences
     def __init__(self):
         super(ScheduleEditor, self).__init__()
-        self.init_DB()
+        self.init_DB('Master.sqlite')
         self.setupUi(self)
-        self.sw = DictChange('test.sqlite')
+        self.sw = DictChange('Master.sqlite')
         self.action.triggered.connect(self.show_editor)
 
         for el in self.get_info('groups'):
@@ -23,9 +23,9 @@ class ScheduleEditor(QMainWindow):
         for el in self.get_info('subjects'):
             self.cB_Subject.addItem(el[0])
     @staticmethod
-    def init_DB():
+    def init_DB(db):
         import sqlite3
-        con = sqlite3.connect("test.sqlite")
+        con = sqlite3.connect(db)
         cur = con.cursor()
 
         auditorium = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE, "name" TEXT, 
@@ -245,6 +245,9 @@ class DictChange(QWidget):
     # noinspection PyUnresolvedReferences
     def __init__(self, db):
         super(DictChange, self).__init__()
+        self.columns = {'rooms': ['name', 'address'],
+                       'groups': ['name', 'direction', 'course'],
+                       'subjects': ['name', 'teacher']}
         self.db = db
         self.setupUI(self)
 
@@ -369,9 +372,11 @@ class DictChange(QWidget):
         query.first()
         roomsNULL = query.value(0)
         if roomsNULL is not None:
+            alert = QMessageBox.information(self, 'Ошибка сохранения', 'Остались незаполненные данные')
             self.tv_Rooms.selectRow(roomsNULL - 1)
+            self.tabWidget.setCurrentIndex(2)
         else:
-            reply = QMessageBox.question(self, 'Window Close', 'Are you sure you want to close the window?',
+            reply = QMessageBox.question(self, 'Закрыть', 'Закрыть редактор справочников и сохранить изменения?',
                                          QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             event.accept()
@@ -423,15 +428,11 @@ class DictChange(QWidget):
                 toDel[1].selectRow(rows[0] - 1)
         toDel[1].hideColumn(0)
 
-    @staticmethod
-    def load(toLoadInto):
+    def load(self, toLoadInto):
         file, status = QFileDialog.getOpenFileName()
         if status:
             print(file, status)
             record = toLoadInto[0].record()
-            columns = {'rooms': ['name', 'address'],
-                       'groups': ['name', 'direction', 'course'],
-                       'subjects': ['name', 'teacher']}
             wb = load_workbook(file)
             ws1 = wb['Лист1']
             rc = ws1.max_row
@@ -440,9 +441,9 @@ class DictChange(QWidget):
             column_names = list(string.ascii_uppercase)
             record.remove(record.indexOf("id"))
             for i in range(1, rc + 1):
-                for j in range(len(columns[toLoadInto[2]])):
+                for j in range(len(self.columns[toLoadInto[2]])):
                     target = column_names[j] + str(i)
-                    record.setValue(columns[toLoadInto[2]][j], ws1[target].value)
+                    record.setValue(self.columns[toLoadInto[2]][j], ws1[target].value)
                 toLoadInto[0].insertRecord(-1, record)
                 toLoadInto[0].submitAll()
 
