@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>442</width>
-    <height>152</height>
+    <height>181</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -151,7 +151,7 @@
        <string>Время:</string>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <widget class="QTimeEdit" name="tE_End">
@@ -203,7 +203,7 @@
        <string>     День недели:</string>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0">
         <widget class="QCheckBox" name="chB_Mo">
@@ -368,6 +368,13 @@
      </widget>
     </widget>
    </item>
+   <item row="4" column="0" rowspan="2">
+    <widget class="QLabel" name="lbl_Space">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
    <item row="5" column="1">
     <widget class="QSplitter" name="splitter_5">
      <property name="orientation">
@@ -387,7 +394,7 @@
        <string>     Даты:</string>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
         <widget class="QDateEdit" name="dE_RepeatStart">
@@ -435,10 +442,16 @@
      </widget>
     </widget>
    </item>
-   <item row="4" column="0" rowspan="2">
-    <widget class="QLabel" name="lbl_space">
-     <property name="text">
-      <string/>
+   <item row="6" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="bB">
+     <property name="layoutDirection">
+      <enum>Qt::LeftToRight</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+     <property name="centerButtons">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
