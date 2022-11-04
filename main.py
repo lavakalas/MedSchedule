@@ -6,6 +6,52 @@ from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery
 from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox, QFileDialog, QMainWindow
 from openpyxl import load_workbook
 
+from PyQt5.QtWidgets import QComboBox, QCompleter
+from PyQt5.QtCore import QSortFilterProxyModel, Qt, QDate
+from PyQt5.QtGui import QStandardItemModel, QStandardItem
+
+
+class ExtendedCombo(QComboBox):
+    def __init__(self, parent=None):
+        super(ExtendedCombo, self).__init__(parent)
+
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setEditable(True)
+        self.completer = QCompleter(self)
+
+        # always show all completions
+        self.completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
+        self.pFilterModel = QSortFilterProxyModel(self)
+        self.pFilterModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
+
+        self.completer.setPopup(self.view())
+
+        self.setCompleter(self.completer)
+
+        self.lineEdit().textEdited.connect(self.pFilterModel.setFilterFixedString)
+        self.completer.activated.connect(self.setTextIfCompleterIsClicked)
+
+    def setModel(self, model):
+        super(ExtendedCombo, self).setModel(model)
+        self.pFilterModel.setSourceModel(model)
+        self.completer.setModel(self.pFilterModel)
+
+    def setModelColumn(self, column):
+        self.completer.setCompletionColumn(column)
+        self.pFilterModel.setFilterKeyColumn(column)
+        super(ExtendedCombo, self).setModelColumn(column)
+
+    def view(self):
+        return self.completer.popup()
+
+    def index(self):
+        return self.currentIndex()
+
+    def setTextIfCompleterIsClicked(self, text):
+        if text:
+            index = self.findText(text)
+            self.setCurrentIndex(index)
+
 
 class ScheduleEditor(QMainWindow):
     # noinspection PyUnresolvedReferences
@@ -16,12 +62,20 @@ class ScheduleEditor(QMainWindow):
         self.sw = DictChange('Master.sqlite')
         self.action.triggered.connect(self.show_editor)
 
+        self.non_repeating = [self.lbl_Date, self.dE_Single]
+        self.chB_DotW = [self.chB_Mo, self.chB_Tu, self.chB_We, self.chB_Th, self.chB_Fr, self.chB_Sa]
+        self.repeating = [self.lbl_DotW, self.lbl_Mo, self.lbl_Tu, self.lbl_We, self.lbl_Th, self.lbl_Fr, self.lbl_Sa,
+                          self.lbl_Dates, self.lbl_DashBD, self.dE_RepeatStart, self.dE_RepeatEnd] + self.chB_DotW
+        self.rB_Single.clicked.connect(self.repeat_choice)
+        self.rB_Repeat.clicked.connect(self.repeat_choice)
+
         for el in self.get_info('groups'):
-            self.cB_Group.addItem(el[0])
+            self.cB_Group.addItem(str(el[0]))
         for el in self.get_info('rooms'):
-            self.cB_Venue.addItem(el[0])
+            self.cB_Venue.addItem(str(el[0]))
         for el in self.get_info('subjects'):
-            self.cB_Subject.addItem(el[0])
+            self.cB_Subject.addItem(str(el[0]))
+
     @staticmethod
     def init_DB(db):
         import sqlite3
@@ -60,7 +114,7 @@ class ScheduleEditor(QMainWindow):
         self.lbl_Dates.setEnabled(False)
         self.lbl_Dates.setGeometry(QtCore.QRect(240, 120, 47, 21))
         self.lbl_Dates.setObjectName("lbl_Dates")
-        self.cB_Subject = QtWidgets.QComboBox(self.centralwidget)
+        self.cB_Subject = ExtendedCombo(self.centralwidget)
         self.cB_Subject.setGeometry(QtCore.QRect(140, 35, 60, 19))
         self.cB_Subject.setObjectName("cB_Subject")
         self.dE_RepeatEnd = QtWidgets.QDateEdit(self.centralwidget)
@@ -76,7 +130,7 @@ class ScheduleEditor(QMainWindow):
         self.lbl_Sa.setEnabled(False)
         self.lbl_Sa.setGeometry(QtCore.QRect(420, 100, 47, 16))
         self.lbl_Sa.setObjectName("lbl_Sa")
-        self.cB_Venue = QtWidgets.QComboBox(self.centralwidget)
+        self.cB_Venue = ExtendedCombo(self.centralwidget)
         self.cB_Venue.setGeometry(QtCore.QRect(140, 60, 60, 19))
         self.cB_Venue.setObjectName("cB_Venue")
         self.lbl_Tu = QtWidgets.QLabel(self.centralwidget)
@@ -129,21 +183,12 @@ class ScheduleEditor(QMainWindow):
         self.chB_Fr.setGeometry(QtCore.QRect(400, 80, 16, 21))
         self.chB_Fr.setText("")
         self.chB_Fr.setObjectName("chB_Fr")
-        self.lbl_Su = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_Su.setEnabled(False)
-        self.lbl_Su.setGeometry(QtCore.QRect(440, 100, 47, 16))
-        self.lbl_Su.setObjectName("lbl_Su")
         self.lbl_Venue = QtWidgets.QLabel(self.centralwidget)
         self.lbl_Venue.setGeometry(QtCore.QRect(10, 60, 98, 21))
         self.lbl_Venue.setObjectName("lbl_Venue")
         self.dE_Single = QtWidgets.QDateEdit(self.centralwidget)
         self.dE_Single.setGeometry(QtCore.QRect(280, 30, 81, 22))
         self.dE_Single.setObjectName("dE_Single")
-        self.chB_Su = QtWidgets.QCheckBox(self.centralwidget)
-        self.chB_Su.setEnabled(False)
-        self.chB_Su.setGeometry(QtCore.QRect(440, 80, 16, 21))
-        self.chB_Su.setText("")
-        self.chB_Su.setObjectName("chB_Su")
         self.rB_Repeat = QtWidgets.QRadioButton(self.centralwidget)
         self.rB_Repeat.setGeometry(QtCore.QRect(220, 50, 91, 31))
         self.rB_Repeat.setObjectName("rB_Repeat")
@@ -217,7 +262,6 @@ class ScheduleEditor(QMainWindow):
         self.lbl_Fr.setText(_translate("MainWindow", "Пт"))
         self.lbl_DashBT.setText(_translate("MainWindow", "—"))
         self.lbl_Group.setText(_translate("MainWindow", "Учебная группа:"))
-        self.lbl_Su.setText(_translate("MainWindow", "Вс"))
         self.lbl_Venue.setText(_translate("MainWindow", "Место проведения:"))
         self.rB_Repeat.setText(_translate("MainWindow", "Повторяется"))
         self.lbl_DotW.setText(_translate("MainWindow", "День недели:"))
@@ -232,6 +276,18 @@ class ScheduleEditor(QMainWindow):
 
     def get_info(self, table):
         return self.sw.get_info(table)
+
+    def repeat_choice(self):
+        flag = self.rB_Repeat.isChecked()
+        self.dE_Single.setDate(QDate(2000, 1, 1))
+        self.dE_RepeatStart.setDate(QDate(2000, 1, 1))
+        self.dE_RepeatEnd.setDate(QDate(2000, 1, 1)) # просто дефолтные даты
+        for el in self.chB_DotW:
+            el.setChecked(False)
+        for el in self.repeating:
+            el.setEnabled(flag)
+        for el in self.non_repeating:
+            el.setEnabled(not flag)
 
 
 class DictChange(QWidget):
