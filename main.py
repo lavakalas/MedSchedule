@@ -419,7 +419,7 @@ class DictChange(QWidget):
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
-    def closeEvent(self, event):
+    def closeEvent(self, event):  # TODO: размножить для остальных таблиц
         reply = QMessageBox.No
         query = QSqlQuery()
         query.exec("SELECT RowNum from "

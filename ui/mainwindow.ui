@@ -26,7 +26,7 @@
          <x>0</x>
          <y>0</y>
          <width>570</width>
-         <height>386</height>
+         <height>384</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
@@ -37,13 +37,23 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="0">
-         <widget class="QTableWidget" name="tW"/>
-        </item>
         <item row="1" column="0">
          <widget class="QScrollBar" name="hSB">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QTableView" name="tV">
+          <property name="mouseTracking">
+           <bool>false</bool>
+          </property>
+          <property name="autoScrollMargin">
+           <number>18</number>
+          </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
           </property>
          </widget>
         </item>
@@ -62,6 +72,10 @@
       <property name="text">
        <string/>
       </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>AddIcon.png</normaloff>AddIcon.png</iconset>
+      </property>
      </widget>
     </item>
     <item row="1" column="1">
@@ -74,6 +88,10 @@
       </property>
       <property name="text">
        <string/>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>DelIcon.png</normaloff>DelIcon.png</iconset>
       </property>
      </widget>
     </item>
@@ -104,8 +122,20 @@
      <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Справочники</string>
+    </property>
+    <addaction name="action"/>
+   </widget>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="action">
+   <property name="text">
+    <string>Редактировать</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
