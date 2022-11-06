@@ -1,249 +1,94 @@
-import string
-import sys
-
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery
 from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox, QFileDialog, QMainWindow
 from openpyxl import load_workbook
-
 from PyQt5.QtWidgets import QComboBox, QCompleter
 from PyQt5.QtCore import QSortFilterProxyModel, Qt, QDate
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
+import string
+import sys
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QMainWindow, QApplication
 
 
-class ExtendedCombo(QComboBox):
-    def __init__(self, parent=None):
-        super(ExtendedCombo, self).__init__(parent)
-
-        self.setFocusPolicy(Qt.StrongFocus)
-        self.setEditable(True)
-        self.completer = QCompleter(self)
-
-        # always show all completions
-        self.completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
-        self.pFilterModel = QSortFilterProxyModel(self)
-        self.pFilterModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
-
-        self.completer.setPopup(self.view())
-
-        self.setCompleter(self.completer)
-
-        self.lineEdit().textEdited.connect(self.pFilterModel.setFilterFixedString)
-        self.completer.activated.connect(self.setTextIfCompleterIsClicked)
-
-    def setModel(self, model):
-        super(ExtendedCombo, self).setModel(model)
-        self.pFilterModel.setSourceModel(model)
-        self.completer.setModel(self.pFilterModel)
-
-    def setModelColumn(self, column):
-        self.completer.setCompletionColumn(column)
-        self.pFilterModel.setFilterKeyColumn(column)
-        super(ExtendedCombo, self).setModelColumn(column)
-
-    def view(self):
-        return self.completer.popup()
-
-    def index(self):
-        return self.currentIndex()
-
-    def setTextIfCompleterIsClicked(self, text):
-        if text:
-            index = self.findText(text)
-            self.setCurrentIndex(index)
-
-
-class ScheduleEditor(QMainWindow):
-    # noinspection PyUnresolvedReferences
+class mainW(QMainWindow):
     def __init__(self):
-        super(ScheduleEditor, self).__init__()
-        self.init_DB('Master.sqlite')
+        super().__init__()
         self.setupUi(self)
-        self.sw = DictChange('Master.sqlite')
-        self.action.triggered.connect(self.show_editor)
-
-        self.non_repeating = [self.lbl_Date, self.dE_Single]
-        self.chB_DotW = [self.chB_Mo, self.chB_Tu, self.chB_We, self.chB_Th, self.chB_Fr, self.chB_Sa]
-        self.repeating = [self.lbl_DotW, self.lbl_Mo, self.lbl_Tu, self.lbl_We, self.lbl_Th, self.lbl_Fr, self.lbl_Sa,
-                          self.lbl_Dates, self.lbl_DashBD, self.dE_RepeatStart, self.dE_RepeatEnd] + self.chB_DotW
-        self.rB_Single.clicked.connect(self.repeat_choice)
-        self.rB_Repeat.clicked.connect(self.repeat_choice)
-
-        for el in self.get_info('groups'):
-            self.cB_Group.addItem(str(el[0]))
-        for el in self.get_info('rooms'):
-            self.cB_Venue.addItem(str(el[0]))
-        for el in self.get_info('subjects'):
-            self.cB_Subject.addItem(str(el[0]))
-
-    @staticmethod
-    def init_DB(db):
-        import sqlite3
-        con = sqlite3.connect(db)
-        cur = con.cursor()
-
-        auditorium = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE, "name" TEXT, 
-        "address" TEXT)"""
-        groups = """CREATE TABLE IF NOT EXISTS "groups"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT, 
-        "direction"	TEXT, 
-        "course" INTEGER )"""
-        schedule = """CREATE TABLE IF NOT EXISTS "schedule"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"group"	TEXT , 
-        "subject" TEXT , 
-        "auditorium" TEXT , 
-        "date_start" TEXT , 
-        "date_end" TEXT, 
-        "time_start" TEXT , 
-        "time_end" TEXT )"""
-        subject = """CREATE TABLE IF NOT EXISTS "subjects"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT , 
-        "teacher" TEXT )"""
-
-        cur.execute(auditorium)
-        cur.execute(groups)
-        cur.execute(schedule)
-        cur.execute(subject)
-        con.commit()
-
-        con.close()
+        self.action.triggered.connect(self.showEditor)
+        self.pB_Plus.clicked.connect(self.addElement)
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(480, 190)
+        MainWindow.resize(590, 478)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.lbl_Dates = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_Dates.setEnabled(False)
-        self.lbl_Dates.setGeometry(QtCore.QRect(240, 120, 47, 21))
-        self.lbl_Dates.setObjectName("lbl_Dates")
-        self.cB_Subject = ExtendedCombo(self.centralwidget)
-        self.cB_Subject.setGeometry(QtCore.QRect(140, 35, 60, 19))
-        self.cB_Subject.setObjectName("cB_Subject")
-        self.dE_RepeatEnd = QtWidgets.QDateEdit(self.centralwidget)
-        self.dE_RepeatEnd.setEnabled(False)
-        self.dE_RepeatEnd.setGeometry(QtCore.QRect(390, 120, 81, 22))
-        self.dE_RepeatEnd.setObjectName("dE_RepeatEnd")
-        self.chB_Th = QtWidgets.QCheckBox(self.centralwidget)
-        self.chB_Th.setEnabled(False)
-        self.chB_Th.setGeometry(QtCore.QRect(380, 80, 16, 21))
-        self.chB_Th.setText("")
-        self.chB_Th.setObjectName("chB_Th")
-        self.lbl_Sa = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_Sa.setEnabled(False)
-        self.lbl_Sa.setGeometry(QtCore.QRect(420, 100, 47, 16))
-        self.lbl_Sa.setObjectName("lbl_Sa")
-        self.cB_Venue = ExtendedCombo(self.centralwidget)
-        self.cB_Venue.setGeometry(QtCore.QRect(140, 60, 60, 19))
-        self.cB_Venue.setObjectName("cB_Venue")
-        self.lbl_Tu = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_Tu.setEnabled(False)
-        self.lbl_Tu.setGeometry(QtCore.QRect(340, 100, 47, 16))
-        self.lbl_Tu.setObjectName("lbl_Tu")
-        self.lbl_Subject = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_Subject.setGeometry(QtCore.QRect(10, 36, 98, 20))
-        self.lbl_Subject.setObjectName("lbl_Subject")
-        self.lbl_Time = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_Time.setGeometry(QtCore.QRect(10, 90, 47, 21))
-        self.lbl_Time.setObjectName("lbl_Time")
-        self.lbl_Date = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_Date.setGeometry(QtCore.QRect(240, 30, 47, 21))
-        self.lbl_Date.setObjectName("lbl_Date")
-        self.lbl_We = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_We.setEnabled(False)
-        self.lbl_We.setGeometry(QtCore.QRect(360, 100, 47, 16))
-        self.lbl_We.setObjectName("lbl_We")
-        self.cB_Group = QtWidgets.QComboBox(self.centralwidget)
-        self.cB_Group.setGeometry(QtCore.QRect(140, 10, 60, 19))
-        self.cB_Group.setObjectName("cB_Group")
-        self.rB_Single = QtWidgets.QRadioButton(self.centralwidget)
-        self.rB_Single.setEnabled(True)
-        self.rB_Single.setGeometry(QtCore.QRect(220, 0, 101, 31))
-        self.rB_Single.setAutoFillBackground(False)
-        self.rB_Single.setChecked(True)
-        self.rB_Single.setObjectName("rB_Single")
-        self.lbl_Fr = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_Fr.setEnabled(False)
-        self.lbl_Fr.setGeometry(QtCore.QRect(400, 100, 47, 16))
-        self.lbl_Fr.setObjectName("lbl_Fr")
-        self.lbl_DashBT = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_DashBT.setGeometry(QtCore.QRect(130, 90, 47, 20))
-        self.lbl_DashBT.setObjectName("lbl_DashBT")
-        self.chB_Tu = QtWidgets.QCheckBox(self.centralwidget)
-        self.chB_Tu.setEnabled(False)
-        self.chB_Tu.setGeometry(QtCore.QRect(340, 80, 16, 21))
-        self.chB_Tu.setText("")
-        self.chB_Tu.setObjectName("chB_Tu")
-        self.lbl_Group = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_Group.setGeometry(QtCore.QRect(10, 10, 98, 21))
-        self.lbl_Group.setObjectName("lbl_Group")
-        self.dE_RepeatStart = QtWidgets.QDateEdit(self.centralwidget)
-        self.dE_RepeatStart.setEnabled(False)
-        self.dE_RepeatStart.setGeometry(QtCore.QRect(280, 120, 81, 22))
-        self.dE_RepeatStart.setObjectName("dE_RepeatStart")
-        self.chB_Fr = QtWidgets.QCheckBox(self.centralwidget)
-        self.chB_Fr.setEnabled(False)
-        self.chB_Fr.setGeometry(QtCore.QRect(400, 80, 16, 21))
-        self.chB_Fr.setText("")
-        self.chB_Fr.setObjectName("chB_Fr")
-        self.lbl_Venue = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_Venue.setGeometry(QtCore.QRect(10, 60, 98, 21))
-        self.lbl_Venue.setObjectName("lbl_Venue")
-        self.dE_Single = QtWidgets.QDateEdit(self.centralwidget)
-        self.dE_Single.setGeometry(QtCore.QRect(280, 30, 81, 22))
-        self.dE_Single.setObjectName("dE_Single")
-        self.rB_Repeat = QtWidgets.QRadioButton(self.centralwidget)
-        self.rB_Repeat.setGeometry(QtCore.QRect(220, 50, 91, 31))
-        self.rB_Repeat.setObjectName("rB_Repeat")
-        self.lbl_DotW = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_DotW.setEnabled(False)
-        self.lbl_DotW.setGeometry(QtCore.QRect(240, 82, 81, 31))
-        self.lbl_DotW.setObjectName("lbl_DotW")
-        self.chB_We = QtWidgets.QCheckBox(self.centralwidget)
-        self.chB_We.setEnabled(False)
-        self.chB_We.setGeometry(QtCore.QRect(360, 80, 16, 21))
-        self.chB_We.setText("")
-        self.chB_We.setObjectName("chB_We")
-        self.tE_End = QtWidgets.QTimeEdit(self.centralwidget)
-        self.tE_End.setGeometry(QtCore.QRect(150, 90, 61, 22))
-        self.tE_End.setObjectName("tE_End")
-        self.tE_Start = QtWidgets.QTimeEdit(self.centralwidget)
-        self.tE_Start.setGeometry(QtCore.QRect(60, 90, 61, 22))
-        self.tE_Start.setObjectName("tE_Start")
-        self.lbl_DashBD = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_DashBD.setEnabled(False)
-        self.lbl_DashBD.setGeometry(QtCore.QRect(370, 120, 16, 20))
-        self.lbl_DashBD.setObjectName("lbl_DashBD")
-        self.lbl_Th = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_Th.setEnabled(False)
-        self.lbl_Th.setGeometry(QtCore.QRect(380, 100, 47, 16))
-        self.lbl_Th.setObjectName("lbl_Th")
-        self.chB_Mo = QtWidgets.QCheckBox(self.centralwidget)
-        self.chB_Mo.setEnabled(False)
-        self.chB_Mo.setGeometry(QtCore.QRect(320, 80, 31, 21))
-        self.chB_Mo.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.chB_Mo.setText("")
-        self.chB_Mo.setObjectName("chB_Mo")
-        self.chB_Sa = QtWidgets.QCheckBox(self.centralwidget)
-        self.chB_Sa.setEnabled(False)
-        self.chB_Sa.setGeometry(QtCore.QRect(420, 80, 16, 21))
-        self.chB_Sa.setText("")
-        self.chB_Sa.setObjectName("chB_Sa")
-        self.lbl_Mo = QtWidgets.QLabel(self.centralwidget)
-        self.lbl_Mo.setEnabled(False)
-        self.lbl_Mo.setGeometry(QtCore.QRect(320, 100, 16, 16))
-        self.lbl_Mo.setObjectName("lbl_Mo")
+        self.gridLayout_2 = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setObjectName("scrollArea")
+        self.sAWC = QtWidgets.QWidget()
+        self.sAWC.setGeometry(QtCore.QRect(0, 0, 570, 384))
+        self.sAWC.setObjectName("sAWC")
+        self.gridLayout = QtWidgets.QGridLayout(self.sAWC)
+        self.gridLayout.setObjectName("gridLayout")
+        self.vSB = QtWidgets.QScrollBar(self.sAWC)
+        self.vSB.setOrientation(QtCore.Qt.Vertical)
+        self.vSB.setObjectName("vSB")
+        self.gridLayout.addWidget(self.vSB, 0, 1, 1, 1)
+        self.hSB = QtWidgets.QScrollBar(self.sAWC)
+        self.hSB.setOrientation(QtCore.Qt.Horizontal)
+        self.hSB.setObjectName("hSB")
+        self.gridLayout.addWidget(self.hSB, 1, 0, 1, 1)
+        self.tV = QtWidgets.QTableView(self.sAWC)
+        self.tV.setMouseTracking(False)
+        self.tV.setAutoScrollMargin(18)
+        self.tV.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.tV.setObjectName("tV")
+        self.gridLayout.addWidget(self.tV, 0, 0, 1, 1)
+        self.scrollArea.setWidget(self.sAWC)
+        self.gridLayout_2.addWidget(self.scrollArea, 0, 0, 1, 3)
+        self.pB_Plus = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.pB_Plus.sizePolicy().hasHeightForWidth())
+        self.pB_Plus.setSizePolicy(sizePolicy)
+        self.pB_Plus.setText("")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("./ui/AddIcon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pB_Plus.setIcon(icon)
+        self.pB_Plus.setObjectName("pB_Plus")
+        self.gridLayout_2.addWidget(self.pB_Plus, 1, 0, 1, 1)
+        self.pB_Minus = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.pB_Minus.sizePolicy().hasHeightForWidth())
+        self.pB_Minus.setSizePolicy(sizePolicy)
+        self.pB_Minus.setText("")
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("./ui/DelIcon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pB_Minus.setIcon(icon1)
+        self.pB_Minus.setObjectName("pB_Minus")
+        self.gridLayout_2.addWidget(self.pB_Minus, 1, 1, 1, 1)
+        spacerItem = QtWidgets.QSpacerItem(489, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.gridLayout_2.addItem(spacerItem, 1, 2, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 480, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 590, 22))
         self.menubar.setObjectName("menubar")
-        self.EditGuides = QtWidgets.QMenu(self.menubar)
-        self.EditGuides.setObjectName("EditGuides")
+        self.menu = QtWidgets.QMenu(self.menubar)
+        self.menu.setObjectName("menu")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
         self.action = QtWidgets.QAction(MainWindow)
         self.action.setObjectName("action")
-        self.EditGuides.addAction(self.action)
-        self.menubar.addAction(self.EditGuides.menuAction())
+        self.menu.addAction(self.action)
+        self.menubar.addAction(self.menu.menuAction())
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -251,43 +96,16 @@ class ScheduleEditor(QMainWindow):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.lbl_Dates.setText(_translate("MainWindow", "Даты:"))
-        self.lbl_Sa.setText(_translate("MainWindow", "Сб"))
-        self.lbl_Tu.setText(_translate("MainWindow", "Вт"))
-        self.lbl_Subject.setText(_translate("MainWindow", "Дисциплина:"))
-        self.lbl_Time.setText(_translate("MainWindow", "Время:"))
-        self.lbl_Date.setText(_translate("MainWindow", "Дата:"))
-        self.lbl_We.setText(_translate("MainWindow", "Ср"))
-        self.rB_Single.setText(_translate("MainWindow", "Не повторяется"))
-        self.lbl_Fr.setText(_translate("MainWindow", "Пт"))
-        self.lbl_DashBT.setText(_translate("MainWindow", "—"))
-        self.lbl_Group.setText(_translate("MainWindow", "Учебная группа:"))
-        self.lbl_Venue.setText(_translate("MainWindow", "Место проведения:"))
-        self.rB_Repeat.setText(_translate("MainWindow", "Повторяется"))
-        self.lbl_DotW.setText(_translate("MainWindow", "День недели:"))
-        self.lbl_DashBD.setText(_translate("MainWindow", "—"))
-        self.lbl_Th.setText(_translate("MainWindow", "Чт"))
-        self.lbl_Mo.setText(_translate("MainWindow", "Пн"))
-        self.EditGuides.setTitle(_translate("MainWindow", "File"))
-        self.action.setText(_translate("MainWindow", "Редактировать справочники"))
+        self.menu.setTitle(_translate("MainWindow", "Справочники"))
+        self.action.setText(_translate("MainWindow", "Редактировать"))
 
-    def show_editor(self):
-        self.sw.show()
+    def showEditor(self):
+        self.editor = DictChange("Master.sqlite", parent=self)
+        self.editor.show()
 
-    def get_info(self, table):
-        return self.sw.get_info(table)
-
-    def repeat_choice(self):
-        flag = self.rB_Repeat.isChecked()
-        self.dE_Single.setDate(QDate(2000, 1, 1))
-        self.dE_RepeatStart.setDate(QDate(2000, 1, 1))
-        self.dE_RepeatEnd.setDate(QDate(2000, 1, 1)) # просто дефолтные даты
-        for el in self.chB_DotW:
-            el.setChecked(False)
-        for el in self.repeating:
-            el.setEnabled(flag)
-        for el in self.non_repeating:
-            el.setEnabled(not flag)
+    def addElement(self):
+        self.adder = ScheduleEditor(parent=self)
+        self.adder.show()
 
 
 class DictChange(QWidget):
@@ -299,7 +117,8 @@ class DictChange(QWidget):
     roomsName: str
 
     # noinspection PyUnresolvedReferences
-    def __init__(self, db):
+    def __init__(self, db, parent=None):
+        self.parent = parent
         super(DictChange, self).__init__()
         self.columns = {'rooms': ['name', 'address'],
                        'groups': ['name', 'direction', 'course'],
@@ -523,10 +342,414 @@ class DictChange(QWidget):
         return out
 
 
+class ExtendedCombo(QComboBox):
+    def __init__(self, parent=None):
+        super(ExtendedCombo, self).__init__(parent)
+
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setEditable(True)
+        self.completer = QCompleter(self)
+
+        # always show all completions
+        self.completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
+        self.pFilterModel = QSortFilterProxyModel(self)
+        self.pFilterModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
+
+        self.completer.setPopup(self.view())
+
+        self.setCompleter(self.completer)
+
+        self.lineEdit().textEdited.connect(self.pFilterModel.setFilterFixedString)
+        self.completer.activated.connect(self.setTextIfCompleterIsClicked)
+
+    def setModel(self, model):
+        super(ExtendedCombo, self).setModel(model)
+        self.pFilterModel.setSourceModel(model)
+        self.completer.setModel(self.pFilterModel)
+
+    def setModelColumn(self, column):
+        self.completer.setCompletionColumn(column)
+        self.pFilterModel.setFilterKeyColumn(column)
+        super(ExtendedCombo, self).setModelColumn(column)
+
+    def view(self):
+        return self.completer.popup()
+
+    def index(self):
+        return self.currentIndex()
+
+    def setTextIfCompleterIsClicked(self, text):
+        if text:
+            index = self.findText(text)
+            self.setCurrentIndex(index)
+
+
+class ScheduleEditor(QWidget):
+    # noinspection PyUnresolvedReferences
+    def __init__(self, parent=None):
+        self.parent = parent
+        super(ScheduleEditor, self).__init__()
+        self.init_DB('Master.sqlite')
+        self.setupUi(self)
+        self.sw = DictChange('Master.sqlite')
+
+        self.non_repeating = [self.lbl_Date, self.dE_Single]
+        self.chB_DotW = [self.chB_Mo, self.chB_Tu, self.chB_We, self.chB_Th, self.chB_Fr, self.chB_Sa]
+        self.repeating = [self.lbl_DotW, self.lbl_Mo, self.lbl_Tu, self.lbl_We, self.lbl_Th, self.lbl_Fr, self.lbl_Sa,
+                          self.lbl_Dates, self.lbl_DashBD, self.dE_RepeatStart, self.dE_RepeatEnd] + self.chB_DotW
+        self.rB_Single.clicked.connect(self.repeat_choice)
+        self.rB_Repeat.clicked.connect(self.repeat_choice)
+
+        for el in self.get_info('groups'):
+            self.cB_Group.addItem(str(el[0]))
+        for el in self.get_info('rooms'):
+            self.cB_Venue.addItem(str(el[0]))
+        for el in self.get_info('subjects'):
+            self.cB_Subject.addItem(str(el[0]))
+
+    @staticmethod
+    def init_DB(db):
+        import sqlite3
+        con = sqlite3.connect(db)
+        cur = con.cursor()
+
+        auditorium = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE, "name" TEXT, 
+        "address" TEXT)"""
+        groups = """CREATE TABLE IF NOT EXISTS "groups"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT, 
+        "direction"	TEXT, 
+        "course" INTEGER )"""
+        schedule = """CREATE TABLE IF NOT EXISTS "schedule"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"group"	TEXT , 
+        "subject" TEXT , 
+        "auditorium" TEXT , 
+        "date_start" TEXT , 
+        "date_end" TEXT, 
+        "time_start" TEXT , 
+        "time_end" TEXT )"""
+        subject = """CREATE TABLE IF NOT EXISTS "subjects"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT , 
+        "teacher" TEXT )"""
+
+        cur.execute(auditorium)
+        cur.execute(groups)
+        cur.execute(schedule)
+        cur.execute(subject)
+        con.commit()
+
+        con.close()
+
+    def setupUi(self, Form):
+        Form.setObjectName("Form")
+        Form.resize(442, 181)
+        self.gridLayout_2 = QtWidgets.QGridLayout(Form)
+        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.splitter_4 = QtWidgets.QSplitter(Form)
+        self.splitter_4.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter_4.setObjectName("splitter_4")
+        self.lbl_Group = QtWidgets.QLabel(self.splitter_4)
+        self.lbl_Group.setObjectName("lbl_Group")
+        self.cB_Group = QtWidgets.QComboBox(self.splitter_4)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.cB_Group.sizePolicy().hasHeightForWidth())
+        self.cB_Group.setSizePolicy(sizePolicy)
+        self.cB_Group.setObjectName("cB_Group")
+        self.gridLayout_2.addWidget(self.splitter_4, 0, 0, 1, 1)
+        self.rB_Single = QtWidgets.QRadioButton(Form)
+        self.rB_Single.setEnabled(True)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.rB_Single.sizePolicy().hasHeightForWidth())
+        self.rB_Single.setSizePolicy(sizePolicy)
+        self.rB_Single.setAutoFillBackground(False)
+        self.rB_Single.setChecked(True)
+        self.rB_Single.setObjectName("rB_Single")
+        self.BG_repeatChoice = QtWidgets.QButtonGroup(Form)
+        self.BG_repeatChoice.setObjectName("BG_repeatChoice")
+        self.BG_repeatChoice.addButton(self.rB_Single)
+        self.gridLayout_2.addWidget(self.rB_Single, 0, 1, 1, 1)
+        self.splitter_3 = QtWidgets.QSplitter(Form)
+        self.splitter_3.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter_3.setObjectName("splitter_3")
+        self.lbl_Subject = QtWidgets.QLabel(self.splitter_3)
+        self.lbl_Subject.setObjectName("lbl_Subject")
+        self.cB_Subject = QtWidgets.QComboBox(self.splitter_3)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.cB_Subject.sizePolicy().hasHeightForWidth())
+        self.cB_Subject.setSizePolicy(sizePolicy)
+        self.cB_Subject.setEditable(True)
+        self.cB_Subject.setObjectName("cB_Subject")
+        self.gridLayout_2.addWidget(self.splitter_3, 1, 0, 1, 1)
+        self.splitter_7 = QtWidgets.QSplitter(Form)
+        self.splitter_7.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter_7.setObjectName("splitter_7")
+        self.lbl_Date = QtWidgets.QLabel(self.splitter_7)
+        self.lbl_Date.setObjectName("lbl_Date")
+        self.dE_Single = QtWidgets.QDateEdit(self.splitter_7)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.dE_Single.sizePolicy().hasHeightForWidth())
+        self.dE_Single.setSizePolicy(sizePolicy)
+        self.dE_Single.setObjectName("dE_Single")
+        self.gridLayout_2.addWidget(self.splitter_7, 1, 1, 1, 1)
+        self.splitter_2 = QtWidgets.QSplitter(Form)
+        self.splitter_2.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter_2.setObjectName("splitter_2")
+        self.lbl_Venue = QtWidgets.QLabel(self.splitter_2)
+        self.lbl_Venue.setObjectName("lbl_Venue")
+        self.cB_Venue = QtWidgets.QComboBox(self.splitter_2)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.cB_Venue.sizePolicy().hasHeightForWidth())
+        self.cB_Venue.setSizePolicy(sizePolicy)
+        self.cB_Venue.setEditable(True)
+        self.cB_Venue.setObjectName("cB_Venue")
+        self.gridLayout_2.addWidget(self.splitter_2, 2, 0, 1, 1)
+        self.rB_Repeat = QtWidgets.QRadioButton(Form)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.rB_Repeat.sizePolicy().hasHeightForWidth())
+        self.rB_Repeat.setSizePolicy(sizePolicy)
+        self.rB_Repeat.setObjectName("rB_Repeat")
+        self.BG_repeatChoice.addButton(self.rB_Repeat)
+        self.gridLayout_2.addWidget(self.rB_Repeat, 2, 1, 1, 1)
+        self.splitter = QtWidgets.QSplitter(Form)
+        self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter.setObjectName("splitter")
+        self.lbl_Time = QtWidgets.QLabel(self.splitter)
+        self.lbl_Time.setObjectName("lbl_Time")
+        self.layoutWidget = QtWidgets.QWidget(self.splitter)
+        self.layoutWidget.setObjectName("layoutWidget")
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.layoutWidget)
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.tE_End = QtWidgets.QTimeEdit(self.layoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tE_End.sizePolicy().hasHeightForWidth())
+        self.tE_End.setSizePolicy(sizePolicy)
+        self.tE_End.setObjectName("tE_End")
+        self.horizontalLayout.addWidget(self.tE_End)
+        self.lbl_DashBT = QtWidgets.QLabel(self.layoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.lbl_DashBT.sizePolicy().hasHeightForWidth())
+        self.lbl_DashBT.setSizePolicy(sizePolicy)
+        self.lbl_DashBT.setObjectName("lbl_DashBT")
+        self.horizontalLayout.addWidget(self.lbl_DashBT)
+        self.tE_Start = QtWidgets.QTimeEdit(self.layoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tE_Start.sizePolicy().hasHeightForWidth())
+        self.tE_Start.setSizePolicy(sizePolicy)
+        self.tE_Start.setObjectName("tE_Start")
+        self.horizontalLayout.addWidget(self.tE_Start)
+        self.gridLayout_2.addWidget(self.splitter, 3, 0, 1, 1)
+        self.splitter_6 = QtWidgets.QSplitter(Form)
+        self.splitter_6.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter_6.setObjectName("splitter_6")
+        self.lbl_DotW = QtWidgets.QLabel(self.splitter_6)
+        self.lbl_DotW.setEnabled(False)
+        self.lbl_DotW.setObjectName("lbl_DotW")
+        self.layoutWidget1 = QtWidgets.QWidget(self.splitter_6)
+        self.layoutWidget1.setObjectName("layoutWidget1")
+        self.gridLayout = QtWidgets.QGridLayout(self.layoutWidget1)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout.setObjectName("gridLayout")
+        self.chB_Mo = QtWidgets.QCheckBox(self.layoutWidget1)
+        self.chB_Mo.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.chB_Mo.sizePolicy().hasHeightForWidth())
+        self.chB_Mo.setSizePolicy(sizePolicy)
+        self.chB_Mo.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.chB_Mo.setText("")
+        self.chB_Mo.setObjectName("chB_Mo")
+        self.gridLayout.addWidget(self.chB_Mo, 0, 0, 1, 1)
+        self.chB_Tu = QtWidgets.QCheckBox(self.layoutWidget1)
+        self.chB_Tu.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.chB_Tu.sizePolicy().hasHeightForWidth())
+        self.chB_Tu.setSizePolicy(sizePolicy)
+        self.chB_Tu.setText("")
+        self.chB_Tu.setObjectName("chB_Tu")
+        self.gridLayout.addWidget(self.chB_Tu, 0, 1, 1, 1)
+        self.chB_We = QtWidgets.QCheckBox(self.layoutWidget1)
+        self.chB_We.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.chB_We.sizePolicy().hasHeightForWidth())
+        self.chB_We.setSizePolicy(sizePolicy)
+        self.chB_We.setText("")
+        self.chB_We.setObjectName("chB_We")
+        self.gridLayout.addWidget(self.chB_We, 0, 2, 1, 1)
+        self.chB_Th = QtWidgets.QCheckBox(self.layoutWidget1)
+        self.chB_Th.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.chB_Th.sizePolicy().hasHeightForWidth())
+        self.chB_Th.setSizePolicy(sizePolicy)
+        self.chB_Th.setText("")
+        self.chB_Th.setObjectName("chB_Th")
+        self.gridLayout.addWidget(self.chB_Th, 0, 3, 1, 1)
+        self.chB_Fr = QtWidgets.QCheckBox(self.layoutWidget1)
+        self.chB_Fr.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.chB_Fr.sizePolicy().hasHeightForWidth())
+        self.chB_Fr.setSizePolicy(sizePolicy)
+        self.chB_Fr.setText("")
+        self.chB_Fr.setObjectName("chB_Fr")
+        self.gridLayout.addWidget(self.chB_Fr, 0, 4, 1, 1)
+        self.chB_Sa = QtWidgets.QCheckBox(self.layoutWidget1)
+        self.chB_Sa.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.chB_Sa.sizePolicy().hasHeightForWidth())
+        self.chB_Sa.setSizePolicy(sizePolicy)
+        self.chB_Sa.setText("")
+        self.chB_Sa.setObjectName("chB_Sa")
+        self.gridLayout.addWidget(self.chB_Sa, 0, 5, 1, 1)
+        self.lbl_Mo = QtWidgets.QLabel(self.layoutWidget1)
+        self.lbl_Mo.setEnabled(False)
+        self.lbl_Mo.setObjectName("lbl_Mo")
+        self.gridLayout.addWidget(self.lbl_Mo, 1, 0, 1, 1)
+        self.lbl_Tu = QtWidgets.QLabel(self.layoutWidget1)
+        self.lbl_Tu.setEnabled(False)
+        self.lbl_Tu.setObjectName("lbl_Tu")
+        self.gridLayout.addWidget(self.lbl_Tu, 1, 1, 1, 1)
+        self.lbl_We = QtWidgets.QLabel(self.layoutWidget1)
+        self.lbl_We.setEnabled(False)
+        self.lbl_We.setObjectName("lbl_We")
+        self.gridLayout.addWidget(self.lbl_We, 1, 2, 1, 1)
+        self.lbl_Th = QtWidgets.QLabel(self.layoutWidget1)
+        self.lbl_Th.setEnabled(False)
+        self.lbl_Th.setObjectName("lbl_Th")
+        self.gridLayout.addWidget(self.lbl_Th, 1, 3, 1, 1)
+        self.lbl_Fr = QtWidgets.QLabel(self.layoutWidget1)
+        self.lbl_Fr.setEnabled(False)
+        self.lbl_Fr.setObjectName("lbl_Fr")
+        self.gridLayout.addWidget(self.lbl_Fr, 1, 4, 1, 1)
+        self.lbl_Sa = QtWidgets.QLabel(self.layoutWidget1)
+        self.lbl_Sa.setEnabled(False)
+        self.lbl_Sa.setObjectName("lbl_Sa")
+        self.gridLayout.addWidget(self.lbl_Sa, 1, 5, 1, 1)
+        self.gridLayout_2.addWidget(self.splitter_6, 3, 1, 2, 1)
+        self.lbl_Space = QtWidgets.QLabel(Form)
+        self.lbl_Space.setText("")
+        self.lbl_Space.setObjectName("lbl_Space")
+        self.gridLayout_2.addWidget(self.lbl_Space, 4, 0, 2, 1)
+        self.splitter_5 = QtWidgets.QSplitter(Form)
+        self.splitter_5.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter_5.setObjectName("splitter_5")
+        self.lbl_Dates = QtWidgets.QLabel(self.splitter_5)
+        self.lbl_Dates.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.lbl_Dates.sizePolicy().hasHeightForWidth())
+        self.lbl_Dates.setSizePolicy(sizePolicy)
+        self.lbl_Dates.setObjectName("lbl_Dates")
+        self.layoutWidget2 = QtWidgets.QWidget(self.splitter_5)
+        self.layoutWidget2.setObjectName("layoutWidget2")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.layoutWidget2)
+        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.dE_RepeatStart = QtWidgets.QDateEdit(self.layoutWidget2)
+        self.dE_RepeatStart.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.dE_RepeatStart.sizePolicy().hasHeightForWidth())
+        self.dE_RepeatStart.setSizePolicy(sizePolicy)
+        self.dE_RepeatStart.setObjectName("dE_RepeatStart")
+        self.horizontalLayout_2.addWidget(self.dE_RepeatStart)
+        self.lbl_DashBD = QtWidgets.QLabel(self.layoutWidget2)
+        self.lbl_DashBD.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.lbl_DashBD.sizePolicy().hasHeightForWidth())
+        self.lbl_DashBD.setSizePolicy(sizePolicy)
+        self.lbl_DashBD.setObjectName("lbl_DashBD")
+        self.horizontalLayout_2.addWidget(self.lbl_DashBD)
+        self.dE_RepeatEnd = QtWidgets.QDateEdit(self.layoutWidget2)
+        self.dE_RepeatEnd.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.dE_RepeatEnd.sizePolicy().hasHeightForWidth())
+        self.dE_RepeatEnd.setSizePolicy(sizePolicy)
+        self.dE_RepeatEnd.setObjectName("dE_RepeatEnd")
+        self.horizontalLayout_2.addWidget(self.dE_RepeatEnd)
+        self.gridLayout_2.addWidget(self.splitter_5, 5, 1, 1, 1)
+        self.bB = QtWidgets.QDialogButtonBox(Form)
+        self.bB.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.bB.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+        self.bB.setCenterButtons(False)
+        self.bB.setObjectName("bB")
+        self.gridLayout_2.addWidget(self.bB, 6, 0, 1, 2)
+
+        self.retranslateUi(Form)
+        QtCore.QMetaObject.connectSlotsByName(Form)
+
+    def retranslateUi(self, Form):
+        _translate = QtCore.QCoreApplication.translate
+        Form.setWindowTitle(_translate("Form", "Form"))
+        self.lbl_Group.setText(_translate("Form", "Учебная группа:"))
+        self.rB_Single.setText(_translate("Form", "Не повторяется"))
+        self.lbl_Subject.setText(_translate("Form", "Дисциплина:"))
+        self.lbl_Date.setText(_translate("Form", "     Дата:"))
+        self.lbl_Venue.setText(_translate("Form", "Место проведения:"))
+        self.rB_Repeat.setText(_translate("Form", "Повторяется"))
+        self.lbl_Time.setText(_translate("Form", "Время:"))
+        self.lbl_DashBT.setText(_translate("Form", "—"))
+        self.lbl_DotW.setText(_translate("Form", "     День недели:"))
+        self.lbl_Mo.setText(_translate("Form", "Пн"))
+        self.lbl_Tu.setText(_translate("Form", "Вт"))
+        self.lbl_We.setText(_translate("Form", "Ср"))
+        self.lbl_Th.setText(_translate("Form", "Чт"))
+        self.lbl_Fr.setText(_translate("Form", "Пт"))
+        self.lbl_Sa.setText(_translate("Form", "Сб"))
+        self.lbl_Dates.setText(_translate("Form", "     Даты:"))
+        self.lbl_DashBD.setText(_translate("Form", "—"))
+
+    def show_editor(self):
+        self.sw.show()
+
+    def get_info(self, table):
+        return self.sw.get_info(table)
+
+    def repeat_choice(self):
+        flag = self.rB_Repeat.isChecked()
+        self.dE_Single.setDate(QDate(2000, 1, 1))
+        self.dE_RepeatStart.setDate(QDate(2000, 1, 1))
+        self.dE_RepeatEnd.setDate(QDate(2000, 1, 1)) # просто дефолтные даты
+        for el in self.chB_DotW:
+            el.setChecked(False)
+        for el in self.repeating:
+            el.setEnabled(flag)
+        for el in self.non_repeating:
+            el.setEnabled(not flag)
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    Schedule = ScheduleEditor()
-    Schedule.show()
+    mainWindow = mainW()
+    mainWindow.show()
     sys.exit(app.exec_())
-# Don't mind me. I'm just an easter egg.
