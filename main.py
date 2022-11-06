@@ -14,9 +14,39 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 class mainW(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.init_DB("Master.sqlite")
         self.setupUi(self)
         self.action.triggered.connect(self.showEditor)
         self.pB_Plus.clicked.connect(self.addElement)
+
+    @staticmethod
+    def init_DB(db):
+        import sqlite3
+        con = sqlite3.connect(db)
+        cur = con.cursor()
+
+        auditorium = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE, "name" TEXT, 
+            "address" TEXT)"""
+        groups = """CREATE TABLE IF NOT EXISTS "groups"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT, 
+            "direction"	TEXT, 
+            "course" INTEGER )"""
+        schedule = """CREATE TABLE IF NOT EXISTS "schedule"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"group"	TEXT , 
+            "subject" TEXT , 
+            "auditorium" TEXT , 
+            "date_start" TEXT , 
+            "date_end" TEXT, 
+            "time_start" TEXT , 
+            "time_end" TEXT )"""
+        subject = """CREATE TABLE IF NOT EXISTS "subjects"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT , 
+            "teacher" TEXT )"""
+
+        cur.execute(auditorium)
+        cur.execute(groups)
+        cur.execute(schedule)
+        cur.execute(subject)
+        con.commit()
+
+        con.close()
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -389,7 +419,6 @@ class ScheduleEditor(QWidget):
     def __init__(self, parent=None):
         self.parent = parent
         super(ScheduleEditor, self).__init__()
-        self.init_DB('Master.sqlite')
         self.setupUi(self)
         self.sw = DictChange('Master.sqlite')
 
@@ -406,35 +435,6 @@ class ScheduleEditor(QWidget):
             self.cB_Venue.addItem(str(el[0]))
         for el in self.get_info('subjects'):
             self.cB_Subject.addItem(str(el[0]))
-
-    @staticmethod
-    def init_DB(db):
-        import sqlite3
-        con = sqlite3.connect(db)
-        cur = con.cursor()
-
-        auditorium = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE, "name" TEXT, 
-        "address" TEXT)"""
-        groups = """CREATE TABLE IF NOT EXISTS "groups"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT, 
-        "direction"	TEXT, 
-        "course" INTEGER )"""
-        schedule = """CREATE TABLE IF NOT EXISTS "schedule"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"group"	TEXT , 
-        "subject" TEXT , 
-        "auditorium" TEXT , 
-        "date_start" TEXT , 
-        "date_end" TEXT, 
-        "time_start" TEXT , 
-        "time_end" TEXT )"""
-        subject = """CREATE TABLE IF NOT EXISTS "subjects"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT , 
-        "teacher" TEXT )"""
-
-        cur.execute(auditorium)
-        cur.execute(groups)
-        cur.execute(schedule)
-        cur.execute(subject)
-        con.commit()
-
-        con.close()
 
     def setupUi(self, Form):
         Form.setObjectName("Form")
