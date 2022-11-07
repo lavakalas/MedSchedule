@@ -43,7 +43,7 @@ class MedSchedule(QMainWindow):
         self.QTdb.setDatabaseName("Master.sqlite")
         self.QTdb.open()
         self.editor = DictChange(self.QTdb, parent=self)
-        self.init_DB("Master.sqlite")
+        self.init_DB()
         self.adder = ScheduleEditor(parent=self)
         self.setupUi(self)
         self.action.triggered.connect(self.showEditor)
