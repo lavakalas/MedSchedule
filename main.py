@@ -39,11 +39,11 @@ class MedSchedule(QMainWindow):
     # noinspection PyUnresolvedReferences
     def __init__(self):
         super().__init__()
+        self.init_DB()
         self.QTdb = QSqlDatabase.addDatabase('QSQLITE')
         self.QTdb.setDatabaseName("Master.sqlite")
         self.QTdb.open()
         self.editor = DictChange(self.QTdb, parent=self)
-        self.init_DB("Master.sqlite")
         self.adder = ScheduleEditor(parent=self)
         self.setupUi(self)
         self.action.triggered.connect(self.showEditor)
