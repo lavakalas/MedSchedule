@@ -35,15 +35,17 @@ class GroupDisplayModel(QtCore.QAbstractTableModel):
         return len(self.data_[0])
 
 
-class mainW(QMainWindow):
+class MedSchedule(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.editor = DictChange("Master.sqlite", parent=self)
         self.init_DB("Master.sqlite")
+        self.adder = ScheduleEditor(parent=self)
         self.setupUi(self)
         self.action.triggered.connect(self.showEditor)
         self.pB_Plus.clicked.connect(self.addElement)
         self.pB_Minus.clicked.connect(self.delElement)
-        data = [
+        data = [  # TESTS
             [1, datetime.today(), 3],
             [4, "Le string", 6],
             [7, 3.14159265359, 9]
@@ -80,6 +82,10 @@ class mainW(QMainWindow):
 
         con.close()
 
+    def closeEvent(self, event):
+        self.adder.close()
+        event.accept()
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(590, 478)
@@ -95,14 +101,6 @@ class mainW(QMainWindow):
         self.sAWC.setObjectName("sAWC")
         self.gridLayout = QtWidgets.QGridLayout(self.sAWC)
         self.gridLayout.setObjectName("gridLayout")
-        self.vSB = QtWidgets.QScrollBar(self.sAWC)
-        self.vSB.setOrientation(QtCore.Qt.Vertical)
-        self.vSB.setObjectName("vSB")
-        self.gridLayout.addWidget(self.vSB, 0, 1, 1, 1)
-        self.hSB = QtWidgets.QScrollBar(self.sAWC)
-        self.hSB.setOrientation(QtCore.Qt.Horizontal)
-        self.hSB.setObjectName("hSB")
-        self.gridLayout.addWidget(self.hSB, 1, 0, 1, 1)
         self.tV = QtWidgets.QTableView(self.sAWC)
         self.tV.setMouseTracking(False)
         self.tV.setAutoScrollMargin(18)
@@ -161,9 +159,12 @@ class mainW(QMainWindow):
         self.menu.setTitle(_translate("MainWindow", "Справочники"))
         self.action.setText(_translate("MainWindow", "Редактировать"))
 
+    def get_info(self, table):
+        return self.editor.get_info(table)
+
     def showEditor(self):
-        self.editor = DictChange("Master.sqlite", parent=self)
         self.editor.show()
+        self.adder.close()
 
     def addElement(self):
         self.adder = ScheduleEditor(parent=self)
@@ -171,12 +172,11 @@ class mainW(QMainWindow):
 
     def delElement(self):  # WRONG TODO: CHANGE ACCORDING TO LOGIC
         data = [
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 9]
+            [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
         ]
         self.model = GroupDisplayModel(data)
         self.tV.setModel(self.model)
+
 
 class DictChange(QWidget):
     smodel: QSqlTableModel
@@ -214,16 +214,19 @@ class DictChange(QWidget):
         self.roomsName = 'rooms'  # loading rooms
         self.rmodel = QSqlTableModel(self, self.QTdb)
         self.rmodel.setTable(self.roomsName)
+        self.rmodel.setEditStrategy(QSqlTableModel.OnFieldChange)
         self.rmodel.select()
 
         self.groupsName = 'groups'  # loading groups
         self.gmodel = QSqlTableModel(self, self.QTdb)
         self.gmodel.setTable(self.groupsName)
+        self.gmodel.setEditStrategy(QSqlTableModel.OnFieldChange)
         self.gmodel.select()
 
         self.subjectsName = 'subjects'  # loading subjects
         self.smodel = QSqlTableModel(self, self.QTdb)
         self.smodel.setTable(self.subjectsName)
+        self.smodel.setEditStrategy(QSqlTableModel.OnFieldChange)
         self.smodel.select()
 
     def setupUI(self, Form):
@@ -290,7 +293,6 @@ class DictChange(QWidget):
         self.tv_Rooms.setObjectName("tv_Rooms")
         self.tv_Rooms.setModel(self.rmodel)
         self.tv_Rooms.hideColumn(0)
-
         self.pb_ImportRooms = QtWidgets.QPushButton(self.Rooms)
         self.pb_ImportRooms.setGeometry(QtCore.QRect(650, 550, 111, 21))
         self.pb_ImportRooms.setObjectName("pb_ImportRooms")
@@ -314,8 +316,10 @@ class DictChange(QWidget):
         query.exec("SELECT RowNum from "
                    "(SELECT ROW_NUMBER () OVER (ORDER BY id) RowNum, name, address FROM rooms)"
                    " WHERE name IS NULL or address IS NULL or name = '' or address = ''")
-        query.first()
-        roomsNULL = query.value(0)
+        if query.first():
+            roomsNULL = query.value(0)
+        else:
+            roomsNULL = None
         if roomsNULL is not None:
             alert = QMessageBox.information(self, 'Ошибка сохранения', 'Остались незаполненные данные')
             self.tv_Rooms.selectRow(roomsNULL - 1)
@@ -392,17 +396,16 @@ class DictChange(QWidget):
                 toLoadInto[0].insertRecord(-1, record)
                 toLoadInto[0].submitAll()
 
-    @staticmethod
-    def get_info(table):
+    def get_info(self, table):
         lengths = {'rooms': 2,
                    'groups': 3,
                    'subjects': 2}
         out = list()
-        query = QSqlQuery()
+        query = QSqlQuery(self.QTdb)
         query.exec(f"SELECT COUNT(*) FROM {table}")
         query.first()
         count = query.value(0)
-        # print(count)
+        print(count)
         query.exec(f'SELECT * FROM {table}')
         query.first()
         out.append([query.value(i) for i in range(1, lengths[table] + 1)])
@@ -460,8 +463,6 @@ class ScheduleEditor(QWidget):
         self.parent = parent
         super(ScheduleEditor, self).__init__()
         self.setupUi(self)
-        self.sw = DictChange('Master.sqlite')
-
         self.non_repeating = [self.lbl_Date, self.dE_Single]
         self.chB_DotW = [self.chB_Mo, self.chB_Tu, self.chB_We, self.chB_Th, self.chB_Fr, self.chB_Sa]
         self.repeating = [self.lbl_DotW, self.lbl_Mo, self.lbl_Tu, self.lbl_We, self.lbl_Th, self.lbl_Fr, self.lbl_Sa,
@@ -469,12 +470,15 @@ class ScheduleEditor(QWidget):
         self.rB_Single.clicked.connect(self.repeat_choice)
         self.rB_Repeat.clicked.connect(self.repeat_choice)
 
-        for el in self.get_info('groups'):
+    def showEvent(self, event):
+        for el in self.parent.get_info('groups'):
             self.cB_Group.addItem(str(el[0]))
-        for el in self.get_info('rooms'):
+        for el in self.parent.get_info('rooms'):
             self.cB_Venue.addItem(str(el[0]))
-        for el in self.get_info('subjects'):
+        for el in self.parent.get_info('subjects'):
             self.cB_Subject.addItem(str(el[0]))
+        print('Loaded info')
+        event.accept()
 
     def setupUi(self, Form):
         Form.setObjectName("Form")
@@ -769,12 +773,6 @@ class ScheduleEditor(QWidget):
         self.lbl_Dates.setText(_translate("Form", "     Даты:"))
         self.lbl_DashBD.setText(_translate("Form", "—"))
 
-    def show_editor(self):
-        self.sw.show()
-
-    def get_info(self, table):
-        return self.sw.get_info(table)
-
     def repeat_choice(self):
         flag = self.rB_Repeat.isChecked()
         self.dE_Single.setDate(QDate(2000, 1, 1))
@@ -791,6 +789,6 @@ class ScheduleEditor(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    mainWindow = mainW()
+    mainWindow = MedSchedule()
     mainWindow.show()
     sys.exit(app.exec_())
