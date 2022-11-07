@@ -42,6 +42,7 @@ class mainW(QMainWindow):
         self.setupUi(self)
         self.action.triggered.connect(self.showEditor)
         self.pB_Plus.clicked.connect(self.addElement)
+        self.pB_Minus.clicked.connect(self.delElement)
         data = [
             [1, datetime.today(), 3],
             [4, "Le string", 6],
@@ -167,6 +168,14 @@ class mainW(QMainWindow):
     def addElement(self):
         self.adder = ScheduleEditor(parent=self)
         self.adder.show()
+
+    def delElement(self):  # WRONG TODO: CHANGE ACCORDING TO LOGIC
+        data = [
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9]
+        ]
+        self.model.data_ = data
 
 
 class DictChange(QWidget):
