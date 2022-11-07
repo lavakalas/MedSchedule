@@ -49,20 +49,14 @@ class MedSchedule(QMainWindow):
         self.action.triggered.connect(self.showEditor)
         self.pB_Plus.clicked.connect(self.addElement)
         self.pB_Minus.clicked.connect(self.delElement)
-
-        data = [  # TESTS
-            [1, datetime.today(), 3],
-            [4, "Le string", 6],
-            [7, 3.14159265359, 9]
-        ]
         self.model = QSqlTableModel(self, self.QTdb)
         self.model.setTable('schedule')
         self.tV.setModel(self.model)
 
     @staticmethod
-    def init_DB(db):
+    def init_DB():
         import sqlite3
-        con = sqlite3.connect(db)
+        con = sqlite3.connect("Master.sqlite")
         cur = con.cursor()
 
         auditorium = """CREATE TABLE IF NOT EXISTS rooms("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE, "name" TEXT, 
