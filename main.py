@@ -473,8 +473,25 @@ class ScheduleEditor(QWidget):
 
     def submit(self):
         if self.flag:
-            # if any([day.isChecked() for day in self.chB_DotW])):
-            days = [day.isChecked() for day in self.chB_DotW]
+            if any([day.isChecked() for day in self.chB_DotW]):
+                days = [day.isChecked() for day in self.chB_DotW]
+                date_start = self.dE_RepeatStart.date().toPyDate()
+                date_end = self.dE_RepeatEnd.date().toPyDate()
+                time_start = self.tE_Start.time().toPyTime()
+                time_end = self.tE_End.time().toPyTime()
+                print(*days, date_start, date_end)
+            else:
+                info = QMessageBox.information(self, 'Ошибка добавления', 'Выберите дни недели.')
+        else:
+            dateSingle = self.dE_Single.date().toPyDate()
+            print(dateSingle)
+            time_start = self.tE_Start.time().toPyTime()
+            time_end = self.tE_End.time().toPyTime()
+        print(time_start, time_end)
+        group = self.cB_Group.currentText()
+        subject = self.cB_Subject.currentText()
+        venue = self.cB_Venue.currentText()
+        print(group, subject, venue)
 
     def showEvent(self, event):
         for el in self.parent.get_info('groups'):
