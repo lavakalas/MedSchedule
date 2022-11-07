@@ -36,6 +36,7 @@ class GroupDisplayModel(QtCore.QAbstractTableModel):
 
 
 class MedSchedule(QMainWindow):
+    # noinspection PyUnresolvedReferences
     def __init__(self):
         super().__init__()
         self.editor = DictChange("Master.sqlite", parent=self)
@@ -351,9 +352,8 @@ class DictChange(QWidget):
 
     @staticmethod
     def addRow(toAdd):
-        print(toAdd)
         record = toAdd[0].record()
-        print(toAdd[0].insertRecord(-1, record))
+        toAdd[0].insertRecord(-1, record)
         toAdd[0].submitAll()
         toAdd[0].clear()
         toAdd[0].setTable(toAdd[2])
@@ -380,13 +380,11 @@ class DictChange(QWidget):
     def load(self, toLoadInto):
         file, status = QFileDialog.getOpenFileName()
         if status:
-            print(file, status)
             record = toLoadInto[0].record()
             wb = load_workbook(file)
             ws1 = wb['Лист1']
             rc = ws1.max_row
             cc = ws1.max_column
-            print(rc, cc)
             column_names = list(string.ascii_uppercase)
             record.remove(record.indexOf("id"))
             for i in range(1, rc + 1):
@@ -405,7 +403,6 @@ class DictChange(QWidget):
         query.exec(f"SELECT COUNT(*) FROM {table}")
         query.first()
         count = query.value(0)
-        print(count)
         query.exec(f'SELECT * FROM {table}')
         query.first()
         out.append([query.value(i) for i in range(1, lengths[table] + 1)])
@@ -416,6 +413,7 @@ class DictChange(QWidget):
 
 
 class ExtendedCombo(QComboBox):
+    # noinspection PyUnresolvedReferences
     def __init__(self, parent=None):
         super(ExtendedCombo, self).__init__(parent)
 
@@ -463,12 +461,20 @@ class ScheduleEditor(QWidget):
         self.parent = parent
         super(ScheduleEditor, self).__init__()
         self.setupUi(self)
+        self.flag = self.rB_Repeat.isChecked()
         self.non_repeating = [self.lbl_Date, self.dE_Single]
         self.chB_DotW = [self.chB_Mo, self.chB_Tu, self.chB_We, self.chB_Th, self.chB_Fr, self.chB_Sa]
         self.repeating = [self.lbl_DotW, self.lbl_Mo, self.lbl_Tu, self.lbl_We, self.lbl_Th, self.lbl_Fr, self.lbl_Sa,
                           self.lbl_Dates, self.lbl_DashBD, self.dE_RepeatStart, self.dE_RepeatEnd] + self.chB_DotW
         self.rB_Single.clicked.connect(self.repeat_choice)
         self.rB_Repeat.clicked.connect(self.repeat_choice)
+        self.bB.button(QtWidgets.QDialogButtonBox.Cancel).clicked.connect(self.close)
+        self.bB.button(QtWidgets.QDialogButtonBox.Ok).clicked.connect(self.submit)
+
+    def submit(self):
+        if self.flag:
+            # if any([day.isChecked() for day in self.chB_DotW])):
+            days = [day.isChecked() for day in self.chB_DotW]
 
     def showEvent(self, event):
         for el in self.parent.get_info('groups'):
@@ -477,7 +483,6 @@ class ScheduleEditor(QWidget):
             self.cB_Venue.addItem(str(el[0]))
         for el in self.parent.get_info('subjects'):
             self.cB_Subject.addItem(str(el[0]))
-        print('Loaded info')
         event.accept()
 
     def setupUi(self, Form):
@@ -774,16 +779,16 @@ class ScheduleEditor(QWidget):
         self.lbl_DashBD.setText(_translate("Form", "—"))
 
     def repeat_choice(self):
-        flag = self.rB_Repeat.isChecked()
+        self.flag = self.rB_Repeat.isChecked()
         self.dE_Single.setDate(QDate(2000, 1, 1))
         self.dE_RepeatStart.setDate(QDate(2000, 1, 1))
         self.dE_RepeatEnd.setDate(QDate(2000, 1, 1))  # просто дефолтные даты
         for el in self.chB_DotW:
             el.setChecked(False)
         for el in self.repeating:
-            el.setEnabled(flag)
+            el.setEnabled(self.flag)
         for el in self.non_repeating:
-            el.setEnabled(not flag)
+            el.setEnabled(not self.flag)
 
 
 if __name__ == '__main__':
