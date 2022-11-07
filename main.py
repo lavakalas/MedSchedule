@@ -1,7 +1,7 @@
 from datetime import *
 
 from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery
-from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox, QFileDialog, QMainWindow
+from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox, QFileDialog, QMainWindow, QSizePolicy
 from openpyxl import load_workbook
 from PyQt5.QtWidgets import QComboBox, QCompleter
 from PyQt5.QtCore import QSortFilterProxyModel, Qt, QDate
@@ -39,19 +39,24 @@ class MedSchedule(QMainWindow):
     # noinspection PyUnresolvedReferences
     def __init__(self):
         super().__init__()
-        self.editor = DictChange("Master.sqlite", parent=self)
+        self.QTdb = QSqlDatabase.addDatabase('QSQLITE')
+        self.QTdb.setDatabaseName("Master.sqlite")
+        self.QTdb.open()
+        self.editor = DictChange(self.QTdb, parent=self)
         self.init_DB("Master.sqlite")
         self.adder = ScheduleEditor(parent=self)
         self.setupUi(self)
         self.action.triggered.connect(self.showEditor)
         self.pB_Plus.clicked.connect(self.addElement)
         self.pB_Minus.clicked.connect(self.delElement)
+
         data = [  # TESTS
             [1, datetime.today(), 3],
             [4, "Le string", 6],
             [7, 3.14159265359, 9]
         ]
-        self.model = GroupDisplayModel(data)
+        self.model = QSqlTableModel(self, self.QTdb)
+        self.model.setTable('schedule')
         self.tV.setModel(self.model)
 
     @staticmethod
@@ -89,7 +94,7 @@ class MedSchedule(QMainWindow):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(590, 478)
+        MainWindow.setFixedSize(900, 640)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.centralwidget)
@@ -171,12 +176,8 @@ class MedSchedule(QMainWindow):
         self.adder = ScheduleEditor(parent=self)
         self.adder.show()
 
-    def delElement(self):  # WRONG TODO: CHANGE ACCORDING TO LOGIC
-        data = [
-            [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
-        ]
-        self.model = GroupDisplayModel(data)
-        self.tV.setModel(self.model)
+    def delElement(self):
+        pass
 
 
 class DictChange(QWidget):
@@ -188,7 +189,7 @@ class DictChange(QWidget):
     roomsName: str
 
     # noinspection PyUnresolvedReferences
-    def __init__(self, db, parent=None):
+    def __init__(self, db, parent=None, ):
         self.parent = parent
         super(DictChange, self).__init__()
         self.columns = {'rooms': ['name', 'address'],
@@ -213,29 +214,26 @@ class DictChange(QWidget):
 
     def load_models(self):
         self.roomsName = 'rooms'  # loading rooms
-        self.rmodel = QSqlTableModel(self, self.QTdb)
+        self.rmodel = QSqlTableModel(self, self.db)
         self.rmodel.setTable(self.roomsName)
         self.rmodel.setEditStrategy(QSqlTableModel.OnFieldChange)
         self.rmodel.select()
 
         self.groupsName = 'groups'  # loading groups
-        self.gmodel = QSqlTableModel(self, self.QTdb)
+        self.gmodel = QSqlTableModel(self, self.db)
         self.gmodel.setTable(self.groupsName)
         self.gmodel.setEditStrategy(QSqlTableModel.OnFieldChange)
         self.gmodel.select()
 
         self.subjectsName = 'subjects'  # loading subjects
-        self.smodel = QSqlTableModel(self, self.QTdb)
+        self.smodel = QSqlTableModel(self, self.db)
         self.smodel.setTable(self.subjectsName)
         self.smodel.setEditStrategy(QSqlTableModel.OnFieldChange)
         self.smodel.select()
 
     def setupUI(self, Form):
         Form.setObjectName("Form")
-        Form.resize(773, 611)
-        self.QTdb = QSqlDatabase.addDatabase('QSQLITE')
-        self.QTdb.setDatabaseName(self.db)
-        self.QTdb.open()
+        Form.setFixedSize(773, 611)
         self.load_models()
         self.tabWidget = QtWidgets.QTabWidget(Form)
         self.tabWidget.setGeometry(QtCore.QRect(-7, 1, 781, 611))
@@ -313,7 +311,7 @@ class DictChange(QWidget):
 
     def closeEvent(self, event):  # TODO: размножить для остальных таблиц
         reply = QMessageBox.No
-        query = QSqlQuery()
+        query = QSqlQuery(self.db)
         query.exec("SELECT RowNum from "
                    "(SELECT ROW_NUMBER () OVER (ORDER BY id) RowNum, name, address FROM rooms)"
                    " WHERE name IS NULL or address IS NULL or name = '' or address = ''")
@@ -399,9 +397,9 @@ class DictChange(QWidget):
                    'groups': 3,
                    'subjects': 2}
         out = list()
-        query = QSqlQuery(self.QTdb)
+        query = QSqlQuery(self.db)
         query.exec(f"SELECT COUNT(*) FROM {table}")
-        query.first()
+        print(query.first())
         count = query.value(0)
         query.exec(f'SELECT * FROM {table}')
         query.first()
@@ -482,6 +480,7 @@ class ScheduleEditor(QWidget):
                 print(*days, date_start, date_end)
             else:
                 info = QMessageBox.information(self, 'Ошибка добавления', 'Выберите дни недели.')
+                return 0
         else:
             dateSingle = self.dE_Single.date().toPyDate()
             print(dateSingle)
@@ -504,7 +503,7 @@ class ScheduleEditor(QWidget):
 
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(442, 181)
+        Form.setFixedSize(442, 181)
         self.gridLayout_2 = QtWidgets.QGridLayout(Form)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.splitter_4 = QtWidgets.QSplitter(Form)
