@@ -175,8 +175,8 @@ class mainW(QMainWindow):
             [4, 5, 6],
             [7, 8, 9]
         ]
-        self.model.data_ = data
-
+        self.model = GroupDisplayModel(data)
+        self.tV.setModel(self.model)
 
 class DictChange(QWidget):
     smodel: QSqlTableModel
