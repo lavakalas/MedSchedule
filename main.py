@@ -303,9 +303,34 @@ class DictChange(QWidget):
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
-    def closeEvent(self, event):  # TODO: размножить для остальных таблиц
+    def closeEvent(self, event):
         reply = QMessageBox.No
         query = QSqlQuery(self.db)
+
+        query.exec("SELECT RowNum from "
+                   "(SELECT ROW_NUMBER () OVER (ORDER BY id) RowNum, name, direction, course FROM groups)"
+                   "WHERE name IS NULL or direction IS NULL or course IS NULL or name = '' or direction = '' or "
+                   "course = ''")
+        if query.first():
+            groupsNULL = query.value(0)
+        else:
+            groupsNULL = None
+        if groupsNULL is not None:
+            alert = QMessageBox.information(self, 'Ошибка сохранения', 'Остались незаполненные данные')
+            self.tv_Groups.selectRow(groupsNULL - 1)
+            self.tabWidget.setCurrentIndex(0)
+
+        query.exec("SELECT RowNum from "
+                   "(SELECT ROW_NUMBER () OVER (ORDER BY id) RowNum, name, teacher FROM subjects)"
+                   " WHERE name IS NULL or teacher IS NULL or name = '' or teacher = ''")
+        if query.first():
+            subjNULL = query.value(0)
+        else:
+            subjNULL = None
+        if subjNULL is not None:
+            alert = QMessageBox.information(self, 'Ошибка сохранения', 'Остались незаполненные данные')
+            self.tv_Subjects.selectRow(subjNULL - 1)
+            self.tabWidget.setCurrentIndex(1)
         query.exec("SELECT RowNum from "
                    "(SELECT ROW_NUMBER () OVER (ORDER BY id) RowNum, name, address FROM rooms)"
                    " WHERE name IS NULL or address IS NULL or name = '' or address = ''")
@@ -317,7 +342,7 @@ class DictChange(QWidget):
             alert = QMessageBox.information(self, 'Ошибка сохранения', 'Остались незаполненные данные')
             self.tv_Rooms.selectRow(roomsNULL - 1)
             self.tabWidget.setCurrentIndex(2)
-        else:
+        if not any([groupsNULL, subjNULL, roomsNULL]):
             reply = QMessageBox.question(self, 'Закрыть', 'Закрыть редактор справочников и сохранить изменения?',
                                          QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
