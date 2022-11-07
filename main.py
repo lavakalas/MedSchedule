@@ -1,4 +1,5 @@
-from PyQt5 import QtWidgets, QtCore, QtGui
+from datetime import *
+
 from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery
 from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox, QFileDialog, QMainWindow
 from openpyxl import load_workbook
@@ -8,7 +9,30 @@ import string
 import sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QMainWindow, QApplication
+
+
+class GroupDisplayModel(QtCore.QAbstractTableModel):
+    def __init__(self, data):
+        super(GroupDisplayModel, self).__init__()
+        self.data_ = data
+
+    def data(self, index, role):
+        if role == Qt.DisplayRole:
+            value = self.data_[index.row()][index.column()]
+
+            if isinstance(value, datetime):
+                return value.strftime("%d.%m.%Y")
+
+            if isinstance(value, float):
+                return "%.2f" % value
+
+            return value
+
+    def rowCount(self, index):
+        return len(self.data_)
+
+    def columnCount(self, index):
+        return len(self.data_[0])
 
 
 class mainW(QMainWindow):
@@ -18,6 +42,13 @@ class mainW(QMainWindow):
         self.setupUi(self)
         self.action.triggered.connect(self.showEditor)
         self.pB_Plus.clicked.connect(self.addElement)
+        data = [
+            [1, datetime.today(), 3],
+            [4, "Le string", 6],
+            [7, 3.14159265359, 9]
+        ]
+        self.model = GroupDisplayModel(data)
+        self.tV.setModel(self.model)
 
     @staticmethod
     def init_DB(db):
@@ -151,8 +182,8 @@ class DictChange(QWidget):
         self.parent = parent
         super(DictChange, self).__init__()
         self.columns = {'rooms': ['name', 'address'],
-                       'groups': ['name', 'direction', 'course'],
-                       'subjects': ['name', 'teacher']}
+                        'groups': ['name', 'direction', 'course'],
+                        'subjects': ['name', 'teacher']}
         self.db = db
         self.setupUI(self)
 
@@ -739,13 +770,14 @@ class ScheduleEditor(QWidget):
         flag = self.rB_Repeat.isChecked()
         self.dE_Single.setDate(QDate(2000, 1, 1))
         self.dE_RepeatStart.setDate(QDate(2000, 1, 1))
-        self.dE_RepeatEnd.setDate(QDate(2000, 1, 1)) # просто дефолтные даты
+        self.dE_RepeatEnd.setDate(QDate(2000, 1, 1))  # просто дефолтные даты
         for el in self.chB_DotW:
             el.setChecked(False)
         for el in self.repeating:
             el.setEnabled(flag)
         for el in self.non_repeating:
             el.setEnabled(not flag)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
