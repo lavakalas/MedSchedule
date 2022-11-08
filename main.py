@@ -545,24 +545,62 @@ class ScheduleEditor(QWidget):
         subject = self.cB_Subject.currentText()
         venue = self.cB_Venue.currentText()
         record = self.model.record()
-        toBeAdded = list()
-        if not self.flag:
-            record.setValue('date', date_start)
-            toBeAdded.append([group, subject, venue, date_start, time_start, time_end])
+        if self.check_intersections(group, subject, venue, date, time_start):
+            info = QMessageBox.information(self, 'Ошибка добавления', 'Неверные данные.')
+            return 0
         else:
-            dates = [i for i in daterange(date_start, date_end) if i.weekday() in days]
-            for date in dates:
-                toBeAdded.append([group, subject, venue, date, time_start, time_end])
-        for el in toBeAdded:
-            record.remove(record.indexOf('id'))
-            record.setValue('group', el[0])
-            record.setValue('subject', el[1])
-            record.setValue('venue', el[2])
-            record.setValue('date', str(el[3]))
-            record.setValue('time_start', str(el[4]))
-            record.setValue('time_end', str(el[5]))
-            self.model.insertRecord(-1, record)
-        self.model.submitAll()
+            toBeAdded = list()
+            if not self.flag:
+                record.setValue('date', date_start)
+                toBeAdded.append([group, subject, venue, date_start, time_start, time_end])
+            else:
+                dates = [i for i in daterange(date_start, date_end) if i.weekday() in days]
+                for date in dates:
+                    toBeAdded.append([group, subject, venue, date, time_start, time_end])
+            for el in toBeAdded:
+                record.remove(record.indexOf('id'))
+                record.setValue('group', el[0])
+                record.setValue('subject', el[1])
+                record.setValue('venue', el[2])
+                record.setValue('date', str(el[3]))
+                record.setValue('time_start', str(el[4]))
+                record.setValue('time_end', str(el[5]))
+                self.model.insertRecord(-1, record)
+            self.model.submitAll()
+
+    def check_intersections(self, group, subject, venue, date, time):
+        query = QSqlQuery(self.db)
+        query.exec(f"SELECT COUNT(*) FROM 'schedule'")
+        print(query.first())
+        count = query.value(0)
+
+        query.exec(f"SELECT FROM 'schedule' WHERE group = {group}")
+        query.first()
+        out = list()
+        out.append([query.value(i) for i in range(1, 8)])
+        for _ in range(1, count):
+            query.next()
+            out.append([query.value(i) for i in range(1, 8)])
+        if out:
+            for el in out:
+                if el[3] == date or el[4] == time:
+                    return True
+
+        query.exec(f"SELECT FROM 'schedule' WHERE auditorium = {venue}")
+        query.first()
+        out = list()
+        out.append([query.value(i) for i in range(1, 8)])
+        for _ in range(1, count):
+            query.next()
+            out.append([query.value(i) for i in range(1, 8)])
+        if out:
+            for el in out:
+                if el[1] == subject:
+                    return False
+                elif el[3] == date or el[4] == time:
+                    return True
+
+        return False
 
     def showEvent(self, event):
         for el in self.parent.get_info('groups'):
