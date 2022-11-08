@@ -54,6 +54,7 @@ class MedSchedule(QMainWindow):
         self.pB_Minus.clicked.connect(self.delElement)
         self.model = QSqlTableModel(self, self.QTdb)
         self.model.setTable('schedule')
+        self.model.select()
         self.tV.setModel(self.model)
         self.tV.hideColumn(0)
         self.adder = ScheduleEditor(self.model, parent=self)
@@ -87,8 +88,13 @@ class MedSchedule(QMainWindow):
         con.close()
 
     def closeEvent(self, event):
-        self.adder.close()
-        event.accept()
+        reply = QMessageBox.question(self, 'Закрыть', 'Закрыть редактор расписания и сохранить изменения?',
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            event.accept()
+            self.adder.close()
+        else:
+            event.ignore()
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -556,6 +562,7 @@ class ScheduleEditor(QWidget):
             record.setValue('time_start', str(el[4]))
             record.setValue('time_end', str(el[5]))
             self.model.insertRecord(-1, record)
+        self.model.submitAll()
 
     def showEvent(self, event):
         for el in self.parent.get_info('groups'):
