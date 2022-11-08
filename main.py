@@ -44,14 +44,16 @@ class MedSchedule(QMainWindow):
         self.QTdb.setDatabaseName("Master.sqlite")
         self.QTdb.open()
         self.editor = DictChange(self.QTdb, parent=self)
-        self.adder = ScheduleEditor(parent=self)
         self.setupUi(self)
         self.action.triggered.connect(self.showEditor)
         self.pB_Plus.clicked.connect(self.addElement)
         self.pB_Minus.clicked.connect(self.delElement)
         self.model = QSqlTableModel(self, self.QTdb)
         self.model.setTable('schedule')
+        self.model.setEditStrategy(QSqlTableModel.EditStrategy.)
         self.tV.setModel(self.model)
+        self.tV.hideColumn(0)
+        self.adder = ScheduleEditor(self.model, parent=self)
 
     @staticmethod
     def init_DB():
@@ -66,6 +68,7 @@ class MedSchedule(QMainWindow):
             "course" INTEGER )"""
         schedule = """CREATE TABLE IF NOT EXISTS "schedule"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"group"	TEXT , 
             "subject" TEXT , 
+            "venue" TEXT , 
             "auditorium" TEXT , 
             "date_start" TEXT , 
             "date_end" TEXT, 
@@ -88,7 +91,7 @@ class MedSchedule(QMainWindow):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.setFixedSize(900, 640)
+        MainWindow.resize(900, 640)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.centralwidget)
@@ -167,7 +170,7 @@ class MedSchedule(QMainWindow):
         self.adder.close()
 
     def addElement(self):
-        self.adder = ScheduleEditor(parent=self)
+        self.adder = ScheduleEditor(self.model, parent=self)
         self.adder.show()
 
     def delElement(self):
@@ -227,7 +230,7 @@ class DictChange(QWidget):
 
     def setupUI(self, Form):
         Form.setObjectName("Form")
-        Form.setFixedSize(773, 611)
+        Form.resize(773, 611)
         self.load_models()
         self.tabWidget = QtWidgets.QTabWidget(Form)
         self.tabWidget.setGeometry(QtCore.QRect(-7, 1, 781, 611))
@@ -473,8 +476,11 @@ class ExtendedCombo(QComboBox):
 
 
 class ScheduleEditor(QWidget):
+    model: QSqlTableModel
+
     # noinspection PyUnresolvedReferences
-    def __init__(self, parent=None):
+    def __init__(self, schModel, parent=None):
+        self.model = schModel
         self.parent = parent
         super(ScheduleEditor, self).__init__()
         self.setupUi(self)
@@ -496,20 +502,31 @@ class ScheduleEditor(QWidget):
                 date_end = self.dE_RepeatEnd.date().toPyDate()
                 time_start = self.tE_Start.time().toPyTime()
                 time_end = self.tE_End.time().toPyTime()
-                print(*days, date_start, date_end)
             else:
                 info = QMessageBox.information(self, 'Ошибка добавления', 'Выберите дни недели.')
                 return 0
         else:
-            dateSingle = self.dE_Single.date().toPyDate()
-            print(dateSingle)
+            date_start = self.dE_Single.date().toPyDate()
+            date_end = None
             time_start = self.tE_Start.time().toPyTime()
             time_end = self.tE_End.time().toPyTime()
-        print(time_start, time_end)
         group = self.cB_Group.currentText()
         subject = self.cB_Subject.currentText()
         venue = self.cB_Venue.currentText()
-        print(group, subject, venue)
+        record = self.model.record()
+        record.remove(record.indexOf('id'))
+        record.setValue('group', group)
+        record.setValue('subject', subject)
+        record.setValue('venue', venue)
+        record.setNull('auditorium')
+        record.setValue('date_start', str(date_start))
+        if date_end is not None:
+            record.setValue('date_end', str(date_end))
+        else:
+            record.setNull('date_end')
+        record.setValue('time_start', str(time_start))
+        record.setValue('time_end', str(time_end))
+        self.model.insertRecord(-1, record)
 
     def showEvent(self, event):
         for el in self.parent.get_info('groups'):
@@ -522,7 +539,7 @@ class ScheduleEditor(QWidget):
 
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.setFixedSize(442, 181)
+        Form.resize(442, 181)
         self.gridLayout_2 = QtWidgets.QGridLayout(Form)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.splitter_4 = QtWidgets.QSplitter(Form)
