@@ -50,7 +50,6 @@ class MedSchedule(QMainWindow):
         self.pB_Minus.clicked.connect(self.delElement)
         self.model = QSqlTableModel(self, self.QTdb)
         self.model.setTable('schedule')
-        self.model.setEditStrategy(QSqlTableModel.EditStrategy.)
         self.tV.setModel(self.model)
         self.tV.hideColumn(0)
         self.adder = ScheduleEditor(self.model, parent=self)
@@ -69,9 +68,7 @@ class MedSchedule(QMainWindow):
         schedule = """CREATE TABLE IF NOT EXISTS "schedule"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"group"	TEXT , 
             "subject" TEXT , 
             "venue" TEXT , 
-            "auditorium" TEXT , 
-            "date_start" TEXT , 
-            "date_end" TEXT, 
+            "date" TEXT ,  
             "time_start" TEXT , 
             "time_end" TEXT )"""
         subject = """CREATE TABLE IF NOT EXISTS "subjects"("id" INTEGER  PRIMARY KEY AUTOINCREMENT UNIQUE,"name" TEXT , 
