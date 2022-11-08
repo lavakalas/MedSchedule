@@ -11,6 +11,10 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
+def daterange(start_date, end_date):
+    for n in range(int((end_date - start_date).days)):
+        yield start_date + timedelta(n)
+
 class GroupDisplayModel(QtCore.QAbstractTableModel):
     def __init__(self, data):
         super(GroupDisplayModel, self).__init__()
@@ -171,7 +175,20 @@ class MedSchedule(QMainWindow):
         self.adder.show()
 
     def delElement(self):
-        pass
+        rows = list(set([el.row() for el in self.tV.selectionModel().selectedIndexes()]))
+        if rows:
+            ask = QMessageBox
+            status = ask.question(self, '', 'Вы уверены?', ask.Yes | ask.No)
+
+            if status == ask.Yes:
+                for i in rows:
+                    self.model.deleteRowFromTable(i)
+                self.model.submitAll()
+                self.model.clear()
+                self.model.setTable('schedule')
+                self.model.select()
+                self.tV.selectRow(rows[0] - 1)
+        self.tV.hideColumn(0)
 
 
 class DictChange(QWidget):
@@ -494,7 +511,7 @@ class ScheduleEditor(QWidget):
     def submit(self):
         if self.flag:
             if any([day.isChecked() for day in self.chB_DotW]):
-                days = [day.isChecked() for day in self.chB_DotW]
+                days = [i for i, el in enumerate([day.isChecked() for day in self.chB_DotW]) if el]
                 date_start = self.dE_RepeatStart.date().toPyDate()
                 date_end = self.dE_RepeatEnd.date().toPyDate()
                 time_start = self.tE_Start.time().toPyTime()
@@ -511,19 +528,23 @@ class ScheduleEditor(QWidget):
         subject = self.cB_Subject.currentText()
         venue = self.cB_Venue.currentText()
         record = self.model.record()
-        record.remove(record.indexOf('id'))
-        record.setValue('group', group)
-        record.setValue('subject', subject)
-        record.setValue('venue', venue)
-        record.setNull('auditorium')
-        record.setValue('date_start', str(date_start))
-        if date_end is not None:
-            record.setValue('date_end', str(date_end))
+        toBeAdded = list()
+        if not self.flag:
+            record.setValue('date', date_start)
+            toBeAdded.append([group, subject, venue, date_start, time_start, time_end])
         else:
-            record.setNull('date_end')
-        record.setValue('time_start', str(time_start))
-        record.setValue('time_end', str(time_end))
-        self.model.insertRecord(-1, record)
+            dates = [i for i in daterange(date_start, date_end) if i.weekday() in days]
+            for date in dates:
+                toBeAdded.append([group, subject, venue, date, time_start, time_end])
+        for el in toBeAdded:
+            record.remove(record.indexOf('id'))
+            record.setValue('group', el[0])
+            record.setValue('subject', el[1])
+            record.setValue('venue', el[2])
+            record.setValue('date', str(el[3]))
+            record.setValue('time_start', str(el[4]))
+            record.setValue('time_end', str(el[5]))
+            self.model.insertRecord(-1, record)
 
     def showEvent(self, event):
         for el in self.parent.get_info('groups'):
