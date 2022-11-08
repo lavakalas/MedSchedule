@@ -516,6 +516,10 @@ class ScheduleEditor(QWidget):
                 date_end = self.dE_RepeatEnd.date().toPyDate()
                 time_start = self.tE_Start.time().toPyTime()
                 time_end = self.tE_End.time().toPyTime()
+                if time_end < time_start:
+                    info = QMessageBox.information(self, 'Ошибка добавления', 'Неверное время занятия.')
+                    return 0
+                print(time_end < time_start)
             else:
                 info = QMessageBox.information(self, 'Ошибка добавления', 'Выберите дни недели.')
                 return 0
@@ -524,6 +528,13 @@ class ScheduleEditor(QWidget):
             date_end = None
             time_start = self.tE_Start.time().toPyTime()
             time_end = self.tE_End.time().toPyTime()
+            if time_end < time_start:
+                info = QMessageBox.information(self, 'Ошибка добавления', 'Неверное время занятия.')
+                return 0
+        if date_end:
+            if date_end < date_start:
+                info = QMessageBox.information(self, 'Ошибка добавления', 'Неверные даты проведения занятия.')
+                return 0
         group = self.cB_Group.currentText()
         subject = self.cB_Subject.currentText()
         venue = self.cB_Venue.currentText()
@@ -647,22 +658,6 @@ class ScheduleEditor(QWidget):
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.layoutWidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.tE_End = QtWidgets.QTimeEdit(self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tE_End.sizePolicy().hasHeightForWidth())
-        self.tE_End.setSizePolicy(sizePolicy)
-        self.tE_End.setObjectName("tE_End")
-        self.horizontalLayout.addWidget(self.tE_End)
-        self.lbl_DashBT = QtWidgets.QLabel(self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lbl_DashBT.sizePolicy().hasHeightForWidth())
-        self.lbl_DashBT.setSizePolicy(sizePolicy)
-        self.lbl_DashBT.setObjectName("lbl_DashBT")
-        self.horizontalLayout.addWidget(self.lbl_DashBT)
         self.tE_Start = QtWidgets.QTimeEdit(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -671,6 +666,22 @@ class ScheduleEditor(QWidget):
         self.tE_Start.setSizePolicy(sizePolicy)
         self.tE_Start.setObjectName("tE_Start")
         self.horizontalLayout.addWidget(self.tE_Start)
+        self.lbl_DashBT = QtWidgets.QLabel(self.layoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.lbl_DashBT.sizePolicy().hasHeightForWidth())
+        self.lbl_DashBT.setSizePolicy(sizePolicy)
+        self.lbl_DashBT.setObjectName("lbl_DashBT")
+        self.horizontalLayout.addWidget(self.lbl_DashBT)
+        self.tE_End = QtWidgets.QTimeEdit(self.layoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tE_End.sizePolicy().hasHeightForWidth())
+        self.tE_End.setSizePolicy(sizePolicy)
+        self.tE_End.setObjectName("tE_End")
+        self.horizontalLayout.addWidget(self.tE_End)
         self.gridLayout_2.addWidget(self.splitter, 3, 0, 1, 1)
         self.splitter_6 = QtWidgets.QSplitter(Form)
         self.splitter_6.setOrientation(QtCore.Qt.Horizontal)
