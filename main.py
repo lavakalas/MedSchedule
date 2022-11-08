@@ -545,7 +545,7 @@ class ScheduleEditor(QWidget):
         subject = self.cB_Subject.currentText()
         venue = self.cB_Venue.currentText()
         record = self.model.record()
-        if self.check_intersections(group, subject, venue, date, time_start):
+        if self.check_intersections(group, subject, venue, date_start, time_start):
             info = QMessageBox.information(self, 'Ошибка добавления', 'Неверные данные.')
             return 0
         else:
@@ -569,7 +569,7 @@ class ScheduleEditor(QWidget):
             self.model.submitAll()
 
     def check_intersections(self, group, subject, venue, date, time):
-        query = QSqlQuery(self.db)
+        query = QSqlQuery(self.parent.QTdb)
         query.exec(f"SELECT COUNT(*) FROM 'schedule'")
         print(query.first())
         count = query.value(0)
