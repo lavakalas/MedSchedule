@@ -11,12 +11,12 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-def daterange(start_date, end_date):
+def daterange(start_date, end_date):  # функция возвращает генератор дат в диапазоне данных
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
 
-class GroupDisplayModel(QtCore.QAbstractTableModel):
+class GroupDisplayModel(QtCore.QAbstractTableModel):  # Самодельная модель для отображения расписания в приложении
     def __init__(self, data):
         super(GroupDisplayModel, self).__init__()
         self.horizontalHeaders = [''] * 6
@@ -26,7 +26,7 @@ class GroupDisplayModel(QtCore.QAbstractTableModel):
 
         self.data_ = data
 
-    def setHeaderData(self, section, orientation, data, role=Qt.EditRole):
+    def setHeaderData(self, section, orientation, data, role=Qt.EditRole):  # для заголовков
         if orientation == Qt.Horizontal and role in (Qt.DisplayRole, Qt.EditRole):
             try:
                 self.horizontalHeaders[section] = data
@@ -35,22 +35,13 @@ class GroupDisplayModel(QtCore.QAbstractTableModel):
                 return False
         return super().setHeaderData(section, orientation, data, role)
 
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):  # для заголовков
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             try:
                 return self.horizontalHeaders[section]
             except:
                 pass
         return super().headerData(section, orientation, role)
-
-    def data(self, index, role):
-        if role == Qt.DisplayRole:
-            value = self.data_[index.row()][index.column()]
-
-            if isinstance(value, float):
-                return "%.2f" % value
-
-            return value
 
     def rowCount(self, index):
         return len(self.data_)
@@ -59,7 +50,7 @@ class GroupDisplayModel(QtCore.QAbstractTableModel):
         return len(self.data_[0])
 
 
-class MedSchedule(QMainWindow):
+class MedSchedule(QMainWindow):  # главное окно с расписанием
     # noinspection PyUnresolvedReferences
     def __init__(self):
         super().__init__()
@@ -78,11 +69,11 @@ class MedSchedule(QMainWindow):
         self.tV.setModel(self.DisplayModel)
         self.adder = ScheduleEditor(self.model, parent=self)
 
-    def update_display(self):
+    def update_display(self):  # обновление модели отображения после внесения изменений
         self.DisplayModel = GroupDisplayModel(self.get_schedule('1A'))
         self.tV.setModel(self.DisplayModel)
 
-    def get_schedule(self, group):
+    def get_schedule(self, group):  # парсинг из таблицы schedule по группе
         query = QSqlQuery(self.QTdb)
         query.exec(f"""SELECT COUNT(*) FROM schedule WHERE "group" = "{group}" """)
         query.first()
@@ -97,7 +88,7 @@ class MedSchedule(QMainWindow):
         return out
 
     @staticmethod
-    def init_DB():
+    def init_DB():  # ВАЖНАЯ ХРЕНЬ!! инициализирует структуру бд при отсутствии таковой
         import sqlite3
         con = sqlite3.connect("Master.sqlite")
         cur = con.cursor()
@@ -124,7 +115,7 @@ class MedSchedule(QMainWindow):
 
         con.close()
 
-    def closeEvent(self, event):
+    def closeEvent(self, event):  # переписанный встроенный ивент закрытия, добавлен вопрос
         reply = QMessageBox.question(self, 'Закрыть', 'Закрыть редактор расписания и сохранить изменения?',
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
@@ -133,18 +124,27 @@ class MedSchedule(QMainWindow):
         else:
             event.ignore()
 
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow):  # тут UI, тут всё понятно
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(900, 640)
+        MainWindow.resize(460, 390)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout_2.setObjectName("gridLayout_2")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        spacerItem = QtWidgets.QSpacerItem(238, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
+        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton.setText("")
+        self.pushButton.setObjectName("pushButton")
+        self.horizontalLayout.addWidget(self.pushButton)
+        self.gridLayout_2.addLayout(self.horizontalLayout, 0, 0, 1, 3)
         self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.sAWC = QtWidgets.QWidget()
-        self.sAWC.setGeometry(QtCore.QRect(0, 0, 570, 384))
+        self.sAWC.setGeometry(QtCore.QRect(0, 0, 440, 266))
         self.sAWC.setObjectName("sAWC")
         self.gridLayout = QtWidgets.QGridLayout(self.sAWC)
         self.gridLayout.setObjectName("gridLayout")
@@ -155,7 +155,7 @@ class MedSchedule(QMainWindow):
         self.tV.setObjectName("tV")
         self.gridLayout.addWidget(self.tV, 0, 0, 1, 1)
         self.scrollArea.setWidget(self.sAWC)
-        self.gridLayout_2.addWidget(self.scrollArea, 0, 0, 1, 3)
+        self.gridLayout_2.addWidget(self.scrollArea, 1, 0, 1, 3)
         self.pB_Plus = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -167,7 +167,7 @@ class MedSchedule(QMainWindow):
         icon.addPixmap(QtGui.QPixmap("./ui/AddIcon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_Plus.setIcon(icon)
         self.pB_Plus.setObjectName("pB_Plus")
-        self.gridLayout_2.addWidget(self.pB_Plus, 1, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.pB_Plus, 2, 0, 1, 1)
         self.pB_Minus = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -179,12 +179,12 @@ class MedSchedule(QMainWindow):
         icon1.addPixmap(QtGui.QPixmap("./ui/DelIcon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_Minus.setIcon(icon1)
         self.pB_Minus.setObjectName("pB_Minus")
-        self.gridLayout_2.addWidget(self.pB_Minus, 1, 1, 1, 1)
-        spacerItem = QtWidgets.QSpacerItem(489, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.gridLayout_2.addItem(spacerItem, 1, 2, 1, 1)
+        self.gridLayout_2.addWidget(self.pB_Minus, 2, 1, 1, 1)
+        spacerItem1 = QtWidgets.QSpacerItem(371, 21, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.gridLayout_2.addItem(spacerItem1, 2, 2, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 590, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 460, 22))
         self.menubar.setObjectName("menubar")
         self.menu = QtWidgets.QMenu(self.menubar)
         self.menu.setObjectName("menu")
@@ -206,7 +206,8 @@ class MedSchedule(QMainWindow):
         self.menu.setTitle(_translate("MainWindow", "Справочники"))
         self.action.setText(_translate("MainWindow", "Редактировать"))
 
-    def get_info(self, table):
+    def get_info(self,
+                 table):  # функция собирает ВСЕ данные из данной таблицы (для подгрузки в форму добавления) (только для rooms, groups, subjects)
         return self.editor.get_info(table)
 
     def showEditor(self):
@@ -234,7 +235,7 @@ class MedSchedule(QMainWindow):
         self.tV.hideColumn(0)
 
 
-class DictChange(QWidget):
+class DictChange(QWidget):  # Редактор Справочников
     smodel: QSqlTableModel
     subjectsName: str
     gmodel: QSqlTableModel
@@ -266,7 +267,7 @@ class DictChange(QWidget):
         self.pb_ImportGroups.clicked.connect(lambda: self.load(obj_list[1]))
         self.pb_ImportSubjects.clicked.connect(lambda: self.load(obj_list[2]))
 
-    def load_models(self):
+    def load_models(self):  # создаёт модели для таблиц, связывает их с таблицами в БД
         self.roomsName = 'rooms'  # loading rooms
         self.rmodel = QSqlTableModel(self, self.db)
         self.rmodel.setTable(self.roomsName)
@@ -363,7 +364,7 @@ class DictChange(QWidget):
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
-    def closeEvent(self, event):
+    def closeEvent(self, event):  # вопрос + проверка на незаполненные ячейки
         reply = QMessageBox.No
         query = QSqlQuery(self.db)
 
@@ -454,7 +455,7 @@ class DictChange(QWidget):
                 toDel[1].selectRow(rows[0] - 1)
         toDel[1].hideColumn(0)
 
-    def load(self, toLoadInto):
+    def load(self, toLoadInto):  # подгрузка из .xls .xlsx
         file, status = QFileDialog.getOpenFileName()
         if status:
             record = toLoadInto[0].record()
@@ -471,7 +472,7 @@ class DictChange(QWidget):
                 toLoadInto[0].insertRecord(-1, record)
                 toLoadInto[0].submitAll()
 
-    def get_info(self, table):
+    def get_info(self, table):  # возвращает ВСЕ данные из данной таблицы (только для rooms, groups, subjects)
         lengths = {'rooms': 2,
                    'groups': 3,
                    'subjects': 2}
@@ -489,50 +490,50 @@ class DictChange(QWidget):
         return out
 
 
-class ExtendedCombo(QComboBox):
-    # noinspection PyUnresolvedReferences
-    def __init__(self, parent=None):
-        super(ExtendedCombo, self).__init__(parent)
+# class ExtendedCombo(QComboBox):     НАРАБОТКА УЛУЧШЕННОГО ComboBox, было в планах, не пригодилось
+#     # noinspection PyUnresolvedReferences
+#     def __init__(self, parent=None):
+#         super(ExtendedCombo, self).__init__(parent)
+#
+#         self.setFocusPolicy(Qt.StrongFocus)
+#         self.setEditable(True)
+#         self.completer = QCompleter(self)
+#
+#         # always show all completions
+#         self.completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
+#         self.pFilterModel = QSortFilterProxyModel(self)
+#         self.pFilterModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
+#
+#         self.completer.setPopup(self.view())
+#
+#         self.setCompleter(self.completer)
+#
+#         self.lineEdit().textEdited.connect(self.pFilterModel.setFilterFixedString)
+#         self.completer.activated.connect(self.setTextIfCompleterIsClicked)
+#
+#     def setModel(self, model):
+#         super(ExtendedCombo, self).setModel(model)
+#         self.pFilterModel.setSourceModel(model)
+#         self.completer.setModel(self.pFilterModel)
+#
+#     def setModelColumn(self, column):
+#         self.completer.setCompletionColumn(column)
+#         self.pFilterModel.setFilterKeyColumn(column)
+#         super(ExtendedCombo, self).setModelColumn(column)
+#
+#     def view(self):
+#         return self.completer.popup()
+#
+#     def index(self):
+#         return self.currentIndex()
+#
+#     def setTextIfCompleterIsClicked(self, text):
+#         if text:
+#             index = self.findText(text)
+#             self.setCurrentIndex(index)
+#
 
-        self.setFocusPolicy(Qt.StrongFocus)
-        self.setEditable(True)
-        self.completer = QCompleter(self)
-
-        # always show all completions
-        self.completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
-        self.pFilterModel = QSortFilterProxyModel(self)
-        self.pFilterModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
-
-        self.completer.setPopup(self.view())
-
-        self.setCompleter(self.completer)
-
-        self.lineEdit().textEdited.connect(self.pFilterModel.setFilterFixedString)
-        self.completer.activated.connect(self.setTextIfCompleterIsClicked)
-
-    def setModel(self, model):
-        super(ExtendedCombo, self).setModel(model)
-        self.pFilterModel.setSourceModel(model)
-        self.completer.setModel(self.pFilterModel)
-
-    def setModelColumn(self, column):
-        self.completer.setCompletionColumn(column)
-        self.pFilterModel.setFilterKeyColumn(column)
-        super(ExtendedCombo, self).setModelColumn(column)
-
-    def view(self):
-        return self.completer.popup()
-
-    def index(self):
-        return self.currentIndex()
-
-    def setTextIfCompleterIsClicked(self, text):
-        if text:
-            index = self.findText(text)
-            self.setCurrentIndex(index)
-
-
-class ScheduleEditor(QWidget):
+class ScheduleEditor(QWidget):  # форма добавления записей в расписание
     model: QSqlTableModel
 
     # noinspection PyUnresolvedReferences
@@ -551,7 +552,7 @@ class ScheduleEditor(QWidget):
         self.bB.button(QtWidgets.QDialogButtonBox.Cancel).clicked.connect(self.close)
         self.bB.button(QtWidgets.QDialogButtonBox.Ok).clicked.connect(self.submit)
 
-    def submit(self):
+    def submit(self):  # собирает данные с UI, добавляет их построчно в таблицу
         if self.flag:
             if any([day.isChecked() for day in self.chB_DotW]):
                 days = [i for i, el in enumerate([day.isChecked() for day in self.chB_DotW]) if el]
@@ -606,7 +607,7 @@ class ScheduleEditor(QWidget):
             self.model.submitAll()
             self.parent.update_display()
 
-    def check_intersections(self, group, subject, venue, date, time):
+    def check_intersections(self, group, subject, venue, date, time):  # не работает ;(
         query = QSqlQuery(self.parent.QTdb)
         query.exec("SELECT COUNT(*) FROM schedule")
         print(query.first(), "checks")
@@ -641,7 +642,7 @@ class ScheduleEditor(QWidget):
 
         return False
 
-    def showEvent(self, event):
+    def showEvent(self, event):  # подгрузка в ComboBox'ы на открытии формы
         for el in self.parent.get_info('groups'):
             self.cB_Group.addItem(str(el[0]))
         for el in self.parent.get_info('rooms'):
@@ -943,7 +944,7 @@ class ScheduleEditor(QWidget):
         self.lbl_Dates.setText(_translate("Form", "     Даты:"))
         self.lbl_DashBD.setText(_translate("Form", "—"))
 
-    def repeat_choice(self):
+    def repeat_choice(self):  # смена активных элементов UI (повторяющаяся/не повторяющаяся)
         self.flag = self.rB_Repeat.isChecked()
         self.dE_Single.setDate(QDate(2000, 1, 1))
         self.dE_RepeatStart.setDate(QDate(2000, 1, 1))
