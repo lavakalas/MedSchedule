@@ -15,6 +15,7 @@ def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
+
 class GroupDisplayModel(QtCore.QAbstractTableModel):
     def __init__(self, data):
         super(GroupDisplayModel, self).__init__()
@@ -89,7 +90,7 @@ class MedSchedule(QMainWindow):
 
     def closeEvent(self, event):
         reply = QMessageBox.question(self, 'Закрыть', 'Закрыть редактор расписания и сохранить изменения?',
-                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             event.accept()
             self.adder.close()
@@ -570,35 +571,36 @@ class ScheduleEditor(QWidget):
 
     def check_intersections(self, group, subject, venue, date, time):
         query = QSqlQuery(self.parent.QTdb)
-        query.exec(f"SELECT COUNT(*) FROM 'schedule'")
-        print(query.first())
+        query.exec("SELECT COUNT(*) FROM schedule")
+        print(query.first(), "checks")
         count = query.value(0)
-
-        query.exec(f"SELECT FROM 'schedule' WHERE group = {group}")
-        query.first()
-        out = list()
-        out.append([query.value(i) for i in range(1, 8)])
-        for _ in range(1, count):
-            query.next()
+        if count:
+            query.exec(f"""SELECT * FROM schedule WHERE "group" = "{group}" """)
+            print(query.first(), group)
+            out = list()
             out.append([query.value(i) for i in range(1, 8)])
-        if out:
-            for el in out:
-                if el[3] == date or el[4] == time:
-                    return True
+            print(out)
+            for _ in range(1, count):
+                query.next()
+                out.append([query.value(i) for i in range(1, 8)])
+            if out:
+                for el in out:
+                    if el[3] == date or el[4] == time:
+                        return True
 
-        query.exec(f"SELECT FROM 'schedule' WHERE auditorium = {venue}")
-        query.first()
-        out = list()
-        out.append([query.value(i) for i in range(1, 8)])
-        for _ in range(1, count):
-            query.next()
+            query.exec(f"""SELECT * FROM schedule WHERE "venue" = "{venue}" """)
+            query.first()
+            out = list()
             out.append([query.value(i) for i in range(1, 8)])
-        if out:
-            for el in out:
-                if el[1] == subject:
-                    return False
-                elif el[3] == date or el[4] == time:
-                    return True
+            for _ in range(1, count):
+                query.next()
+                out.append([query.value(i) for i in range(1, 8)])
+            if out:
+                for el in out:
+                    if el[1] == subject:
+                        return False
+                    elif el[3] == date or el[4] == time:
+                        return True
 
         return False
 
