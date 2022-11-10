@@ -1,4 +1,4 @@
-from datetime import *
+from datetime import datetime, timedelta
 
 from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery
 from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox, QFileDialog, QMainWindow, QSizePolicy
@@ -19,14 +19,33 @@ def daterange(start_date, end_date):
 class GroupDisplayModel(QtCore.QAbstractTableModel):
     def __init__(self, data):
         super(GroupDisplayModel, self).__init__()
+        self.horizontalHeaders = [''] * 6
+        headers = ["Группа", "Дисциплина", "Место проведения", "Дата проведения", "Время начала", "Время окончания"]
+        for i, name in enumerate(headers):
+            self.setHeaderData(i, Qt.Horizontal, name)
+
         self.data_ = data
+
+    def setHeaderData(self, section, orientation, data, role=Qt.EditRole):
+        if orientation == Qt.Horizontal and role in (Qt.DisplayRole, Qt.EditRole):
+            try:
+                self.horizontalHeaders[section] = data
+                return True
+            except:
+                return False
+        return super().setHeaderData(section, orientation, data, role)
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            try:
+                return self.horizontalHeaders[section]
+            except:
+                pass
+        return super().headerData(section, orientation, role)
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
             value = self.data_[index.row()][index.column()]
-
-            if isinstance(value, datetime):
-                return value.strftime("%d.%m.%Y")
 
             if isinstance(value, float):
                 return "%.2f" % value
@@ -53,12 +72,29 @@ class MedSchedule(QMainWindow):
         self.action.triggered.connect(self.showEditor)
         self.pB_Plus.clicked.connect(self.addElement)
         self.pB_Minus.clicked.connect(self.delElement)
+        self.DisplayModel = GroupDisplayModel(self.get_schedule('1A'))
         self.model = QSqlTableModel(self, self.QTdb)
         self.model.setTable('schedule')
-        self.model.select()
-        self.tV.setModel(self.model)
-        self.tV.hideColumn(0)
+        self.tV.setModel(self.DisplayModel)
         self.adder = ScheduleEditor(self.model, parent=self)
+
+    def update_display(self):
+        self.DisplayModel = GroupDisplayModel(self.get_schedule('1A'))
+        self.tV.setModel(self.DisplayModel)
+
+    def get_schedule(self, group):
+        query = QSqlQuery(self.QTdb)
+        query.exec(f"""SELECT COUNT(*) FROM schedule WHERE "group" = "{group}" """)
+        query.first()
+        out = list()
+        count = query.value(0)
+        query.exec(f"""SELECT * FROM schedule WHERE "group" = "{group}" """)
+        query.first()
+        out.append([query.value(i) for i in range(1, 7)])
+        for _ in range(1, count):
+            query.next()
+            out.append([query.value(i) for i in range(1, 7)])
+        return out
 
     @staticmethod
     def init_DB():
@@ -568,6 +604,7 @@ class ScheduleEditor(QWidget):
                 record.setValue('time_end', str(el[5]))
                 self.model.insertRecord(-1, record)
             self.model.submitAll()
+            self.parent.update_display()
 
     def check_intersections(self, group, subject, venue, date, time):
         query = QSqlQuery(self.parent.QTdb)
