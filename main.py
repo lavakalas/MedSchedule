@@ -43,6 +43,15 @@ class GroupDisplayModel(QtCore.QAbstractTableModel):  # Самодельная �
                 pass
         return super().headerData(section, orientation, role)
 
+    def data(self, index, role):
+        if role == Qt.DisplayRole:
+            value = self.data_[index.row()][index.column()]
+
+            if isinstance(value, float):
+                return "%.2f" % value
+
+            return value
+
     def rowCount(self, index):
         return len(self.data_)
 
