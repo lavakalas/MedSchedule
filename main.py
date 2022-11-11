@@ -241,7 +241,7 @@ class MedSchedule(QMainWindow):  # главное окно с расписани
                 self.model.setTable('schedule')
                 self.model.select()
                 self.tV.selectRow(rows[0] - 1)
-        self.tV.hideColumn(0)
+        self.update_display()
 
 
 class DictChange(QWidget):  # Редактор Справочников
