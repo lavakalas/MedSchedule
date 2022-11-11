@@ -591,7 +591,7 @@ class ScheduleEditor(QWidget):  # форма добавления записей
         subject = self.cB_Subject.currentText()
         venue = self.cB_Venue.currentText()
         record = self.model.record()
-        if self.check_intersections(group, subject, venue, date_start, time_start):
+        if self.check_intersections(group, subject, venue, date_start, time_start, time_end):
             info = QMessageBox.information(self, 'Ошибка добавления', 'Неверные данные.')
             return 0
         else:
@@ -615,9 +615,7 @@ class ScheduleEditor(QWidget):  # форма добавления записей
             self.model.submitAll()
             self.parent.update_display()
 
-    def check_intersections(self, group, subject, venue, date, time):  # не работает ;(
-        date = date.strftime("%Y-%m-%d")
-        time = time.strftime("%H:%M:%S")
+    def check_intersections(self, group, subject, venue, date, time_start, time_end):  # проверка на пересечения
         query = QSqlQuery(self.parent.QTdb)
         query.exec("SELECT COUNT(*) FROM schedule")
         print(query.first(), "checks")
@@ -633,7 +631,7 @@ class ScheduleEditor(QWidget):  # форма добавления записей
                 out.append([query.value(i) for i in range(1, 8)])
             if out:
                 for el in out:
-                    if el[3] == date and el[4] == time:
+                    if el[3] == date.strftime("%Y-%m-%d") and self.check_time_intersections(datetime.strptime(el[4], "%H:%M:%S").time(), datetime.strptime(el[5], "%H:%M:%S").time(), time_start, time_end):
                         return True
 
             query.exec(f"""SELECT * FROM schedule WHERE "venue" = "{venue}" """)
@@ -645,13 +643,20 @@ class ScheduleEditor(QWidget):  # форма добавления записей
                 out.append([query.value(i) for i in range(1, 8)])
             if out:
                 for el in out:
-                    print(subject, el[1])
                     if el[1] == subject:
                         return False
-                    elif el[3] == date and el[4] == time:
+                    elif el[3] == date.strftime("%Y-%m-%d") and self.check_time_intersections(datetime.strptime(el[4], "%H:%M:%S").time(), datetime.strptime(el[5], "%H:%M:%S").time(), time_start, time_end):
                         return True
 
         return False
+
+    def check_time_intersections(self, time_start, time_end, time_start_to_add, time_end_to_add):
+        # проверка на персечения по времени
+        if (time_start < time_start_to_add < time_end) or (time_start < time_end_to_add < time_end) or \
+                (time_start_to_add <= time_start and time_end_to_add >= time_end):
+            return True
+        else:
+            return False
 
     def showEvent(self, event):  # подгрузка в ComboBox'ы на открытии формы
         for el in self.parent.get_info('groups'):
