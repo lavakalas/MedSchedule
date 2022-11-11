@@ -72,23 +72,23 @@ class MedSchedule(QMainWindow):  # главное окно с расписани
         self.action.triggered.connect(self.showEditor)
         self.pB_Plus.clicked.connect(self.addElement)
         self.pB_Minus.clicked.connect(self.delElement)
-        self.DisplayModel = GroupDisplayModel(self.get_schedule('1A'))
+        self.DisplayModel = GroupDisplayModel(self.get_schedule())
         self.model = QSqlTableModel(self, self.QTdb)
         self.model.setTable('schedule')
         self.tV.setModel(self.DisplayModel)
         self.adder = ScheduleEditor(self.model, parent=self)
 
     def update_display(self):  # обновление модели отображения после внесения изменений
-        self.DisplayModel = GroupDisplayModel(self.get_schedule('1A'))
+        self.DisplayModel = GroupDisplayModel(self.get_schedule())
         self.tV.setModel(self.DisplayModel)
 
-    def get_schedule(self, group):  # парсинг из таблицы schedule по группе
+    def get_schedule(self):  # парсинг из таблицы schedule
         query = QSqlQuery(self.QTdb)
-        query.exec(f"""SELECT COUNT(*) FROM schedule WHERE "group" = "{group}" """)
+        query.exec(f"""SELECT COUNT(*) FROM schedule """)
         query.first()
         out = list()
         count = query.value(0)
-        query.exec(f"""SELECT * FROM schedule WHERE "group" = "{group}" """)
+        query.exec(f"""SELECT * FROM schedule """)
         query.first()
         out.append([query.value(i) for i in range(1, 7)])
         for _ in range(1, count):
@@ -240,7 +240,6 @@ class MedSchedule(QMainWindow):  # главное окно с расписани
                 self.model.clear()
                 self.model.setTable('schedule')
                 self.model.select()
-                self.tV.selectRow(rows[0] - 1)
         self.update_display()
 
 
