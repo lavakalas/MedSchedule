@@ -616,6 +616,8 @@ class ScheduleEditor(QWidget):  # форма добавления записей
             self.parent.update_display()
 
     def check_intersections(self, group, subject, venue, date, time):  # не работает ;(
+        date = date.strftime("%Y-%m-%d")
+        time = time.strftime("%H:%M:%S")
         query = QSqlQuery(self.parent.QTdb)
         query.exec("SELECT COUNT(*) FROM schedule")
         print(query.first(), "checks")
@@ -631,7 +633,7 @@ class ScheduleEditor(QWidget):  # форма добавления записей
                 out.append([query.value(i) for i in range(1, 8)])
             if out:
                 for el in out:
-                    if el[3] == date or el[4] == time:
+                    if el[3] == date and el[4] == time:
                         return True
 
             query.exec(f"""SELECT * FROM schedule WHERE "venue" = "{venue}" """)
@@ -643,9 +645,10 @@ class ScheduleEditor(QWidget):  # форма добавления записей
                 out.append([query.value(i) for i in range(1, 8)])
             if out:
                 for el in out:
+                    print(subject, el[1])
                     if el[1] == subject:
                         return False
-                    elif el[3] == date or el[4] == time:
+                    elif el[3] == date and el[4] == time:
                         return True
 
         return False
