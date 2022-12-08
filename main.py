@@ -193,6 +193,7 @@ class MedSchedule(QMainWindow):  # главное окно с расписани
         self.gridLayout_2.addItem(spacerItem1, 2, 2, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setNativeMenuBar(False)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 460, 22))
         self.menubar.setObjectName("menubar")
         self.menu = QtWidgets.QMenu(self.menubar)
