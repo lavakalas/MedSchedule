@@ -6,3 +6,4 @@ ui.py
 test.py
 ms.py
 .vscode
+.venv
